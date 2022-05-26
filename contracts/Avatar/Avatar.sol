@@ -106,6 +106,12 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         _contractURI = _uri;
     }
 
+    function updateBaseTokenURI(string memory _uri) external
+    onlyOwner
+    {
+        _baseTokenURI = _uri;
+    }
+
     function mint(uint256 quantity) external
     nonReentrant
     {
