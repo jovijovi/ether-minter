@@ -24,6 +24,14 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     string private _contractURI;
     string private _baseTokenURI;
 
+    // Mapping from token id to sha256 hash of content
+    // (tokenId <-> avatar content hash)
+    mapping(uint256 => bytes32) public tokenContentHashes;
+
+    // Mapping from contentHash to tokenID
+    // (avatar content hash <-> tokenId)
+    mapping(bytes32 => uint256) private _contentHashes;
+
     /* *********
      * Modifiers
      * *********
@@ -124,6 +132,12 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         _mintTo(to, quantity);
     }
 
+    function mintForCreator(address to, uint256 quantity, bytes32[] memory contentHashList) external
+    nonReentrant
+    {
+        _mintForCreator(to, quantity, contentHashList);
+    }
+
     /**
      * @notice Finalize this contract and can not mint any more.
      */
@@ -159,6 +173,22 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         _safeMint(to, quantity);
     }
 
+    function _mintForCreator(address to, uint256 quantity, bytes32[] memory contentHashList) internal
+    onlyMintAvailable
+    onlyOperator
+    {
+        require(contentHashList.length == quantity, "Avatar: quantity and contentHashList length mismatch");
+
+        uint256 startTokenId = _nextTokenId();
+
+        _safeMint(to, quantity);
+
+        for (uint256 i = 0; i < contentHashList.length; i++) {
+            _setTokenContentHash(startTokenId + i, contentHashList[i]);
+            _contentHashes[contentHashList[i]] = startTokenId + i;
+        }
+    }
+
     /* *****************
      * Internal Functions
      * *****************
@@ -188,5 +218,11 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         require(_exists(tokenId), "Avatar: operator query for nonexistent token");
         address owner = ownerOf(tokenId);
         return (sender == owner || getApproved(tokenId) == sender || isApprovedForAll(owner, sender));
+    }
+
+    function _setTokenContentHash(uint256 tokenId, bytes32 contentHash) internal virtual
+    onlyExistingToken(tokenId)
+    {
+        tokenContentHashes[tokenId] = contentHash;
     }
 }
