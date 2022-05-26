@@ -220,8 +220,10 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         _safeMint(to, quantity);
 
         for (uint256 i = 0; i < contentHashList.length; i++) {
-            _setTokenContentHash(startTokenId + i, contentHashList[i]);
-            _contentHashes[contentHashList[i]] = startTokenId + i;
+            uint256 tokenId = startTokenId + i;
+            bytes32 contentHash = contentHashList[i];
+            _setTokenContentHash(tokenId, contentHash);
+            _contentHashes[contentHash] = tokenId;
         }
     }
 
