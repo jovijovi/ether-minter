@@ -103,6 +103,16 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         return _exists(tokenId);
     }
 
+    /**
+     * @notice get the tokenId by the contentHash if the token had been minted
+     * @return the tokenId
+     */
+    function getTokenIdByContentHash(bytes32 contentHash) public view returns (uint256)
+    {
+        require(_contentHashes[contentHash] > 0, "Avatar: the token has not been minted.");
+        return _contentHashes[contentHash];
+    }
+
     /* ****************
      * External Functions
      * ****************
