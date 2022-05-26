@@ -1,0 +1,75 @@
+cluster:
+  name: cluster-name
+  id: a8e3835e-ff2b-47ee-bdae-452676d8a73e
+  description: 'cluster description'
+
+network:
+  ip: 0.0.0.0
+  httpServer:
+    enable: true
+    port: 27550
+  httpsServer:
+    enable: false
+    port: 27550
+    mutualTLS: false
+
+serviceInfo:
+  version: v1
+  hostName: HostName
+  serviceName: ether-minter
+  processName: ether-minter
+  ip: 127.0.0.1
+  port: 27550
+  tags:
+    - microservice
+    - typescript
+    - docker
+  id: 7c9e8254-515d-4115-a177-22628525e1d7
+
+log:
+  level: DEBUG
+
+custom:
+  # Default network
+  defaultNetwork:
+    # Chain name
+    chain: polygon
+    # Network name
+    network: mainnet
+    # Use provider pool
+    providerPool: true
+
+  tx:
+    # GasLimit coefficient (%)
+    # Example: 110 means gasLimit * 110%
+    gasLimitC: 110
+    # Transfer confirmations
+    confirmations: 3
+
+  networks:
+    # Polygon
+    # Ref: https://docs.polygon.technology/docs/develop/network-details/network
+    polygon:
+      mainnet:
+        chainId: 137
+        provider:
+          - https://polygon-rpc.com
+          - https://matic-mainnet.chainstacklabs.com
+          - https://rpc-mainnet.maticvigil.com
+          - https://rpc-mainnet.matic.quiknode.pro
+        browser: https://polygonscan.com
+
+      mumbai:
+        chainId: 80001
+        provider:
+          - https://rpc-mumbai.matic.today
+          - https://matic-mumbai.chainstacklabs.com
+        browser: https://mumbai.polygonscan.com
+
+    # Local Development
+    dev:
+      local:
+        chainId: 666
+        provider:
+          - http://localhost:8545
+        browser: http://localhost:4000
