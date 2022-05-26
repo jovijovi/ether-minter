@@ -18,14 +18,14 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
      * *******
      */
 
+    // Maximum supply
+    uint256 public maxSupply = 1000;
+
     // Finalization state, only false can permit mint
     bool public finalization = false;
 
     string private _contractURI;
     string private _baseTokenURI;
-
-    // Maximum the number of tokens limit
-    uint256 private _maxTokenLimit = 1000;
 
     // Mapping from token id to sha256 hash of content
     // (tokenId <-> avatar content hash)
@@ -53,7 +53,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
      * the avatar for the specified tokenId
      */
     modifier onlyApprovedOrOwner(address sender, uint256 tokenId) {
-        require(_isApprovedOrOwner(sender, tokenId), "Avatar: Only approved or owner");
+        require(_isApprovedOrOwner(sender, tokenId), "Avatar: only approved or owner");
         _;
     }
 
@@ -66,10 +66,10 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
-     * @notice Ensure that within the maximum the number of tokens limit.
+     * @notice Ensure that within the maximum supply limit.
      */
-    modifier onlyWithinMaxTokenLimit(uint256 quantity) {
-        require(quantity + totalSupply() <= _maxTokenLimit, "Avatar: reach the maximum the number of tokens limit");
+    modifier onlyWithinMaxSupply(uint256 quantity) {
+        require(quantity + totalSupply() <= maxSupply, "Avatar: reach the maximum supply limit");
         _;
     }
 
@@ -129,13 +129,6 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         return _contentHashes[contentHash];
     }
 
-    /**
-     * @dev Returns the maximum the number of tokens limit.
-     */
-    function maxTokenLimit() public view returns (uint256) {
-        return _maxTokenLimit;
-    }
-
     /* ****************
      * External Functions
      * ****************
@@ -147,16 +140,16 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         _contractURI = _uri;
     }
 
-    function updateBaseTokenURI(string memory _uri) external
+    function setBaseTokenURI(string memory _uri) external
     onlyOwner
     {
         _baseTokenURI = _uri;
     }
 
-    function updateMaxTokenLimit(uint256 limit) external
+    function setMaxSupply(uint256 _val) external
     onlyOwner
     {
-        _maxTokenLimit = limit;
+        maxSupply = _val;
     }
 
     function mint(uint256 quantity) external
@@ -183,7 +176,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     function finalize() external
     onlyOwner
     {
-        require(finalization == false, "Avatar: Already finalized");
+        require(finalization == false, "Avatar: already finalized");
         finalization = true;
     }
 
@@ -208,7 +201,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     function _mintTo(address to, uint256 quantity) internal
     onlyMintAvailable
     onlyOperator
-    onlyWithinMaxTokenLimit(quantity)
+    onlyWithinMaxSupply(quantity)
     {
         _safeMint(to, quantity);
     }
@@ -216,7 +209,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     function _mintForCreator(address to, uint256 quantity, bytes32[] memory contentHashList) internal
     onlyMintAvailable
     onlyOperator
-    onlyWithinMaxTokenLimit(quantity)
+    onlyWithinMaxSupply(quantity)
     onlyValidContentHashList(contentHashList)
     {
         require(contentHashList.length == quantity, "Avatar: quantity and contentHashList length mismatch");
