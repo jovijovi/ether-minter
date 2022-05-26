@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
-// Avatar Contract v0.1.0
+// Avatar Contract v0.1.1
 pragma solidity ^0.8.4;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
 import {ERC721AQueryable} from "erc721a/contracts/extensions/ERC721AQueryable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "./Permission.sol";
 
 /**
  * @title An avatar NFT contract.
  */
-contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable {
+contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl {
 
     /* *******
      * Globals
@@ -62,7 +63,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice On deployment, set the avatar name and symbol
+     * @notice On deployment, set the avatar name, symbol and baseTokenURI
      */
     constructor(string memory _name, string memory _symbol, string memory _uri) ERC721A(_name, _symbol) {
         _baseTokenURI = _uri;
@@ -147,7 +148,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable {
      */
     function _mintTo(address to, uint256 quantity) internal
     onlyMintAvailable
-    onlyOwner
+    onlyOperator
     {
         _safeMint(to, quantity);
     }
