@@ -211,7 +211,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     /**
      * @dev Base URI for computing {tokenURI}. If set, the resulting URI for each
      * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
-     * by default, can be overriden in child contracts.
+     * by default, can be overridden in child contracts.
      */
     function _baseURI() internal view override virtual returns (string memory) {
         return _baseTokenURI;
