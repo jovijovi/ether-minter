@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Avatar Contract v0.2.0
+// Avatar Contract v0.2.1
 pragma solidity ^0.8.4;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
@@ -23,6 +23,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
 
     string private _contractURI;
     string private _baseTokenURI;
+
+    // Maximum the number of tokens limit
+    uint256 private _maxTokenLimit = 1000;
 
     // Mapping from token id to sha256 hash of content
     // (tokenId <-> avatar content hash)
@@ -71,6 +74,14 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
+     * @notice Ensure that within the maximum the number of tokens limit.
+     */
+    modifier onlyWithinMaxTokenLimit(uint256 quantity) {
+        require(quantity + totalSupply() <= _maxTokenLimit, "Avatar: reach the maximum the number of tokens limit");
+        _;
+    }
+
+    /**
      * @notice On deployment, set the avatar name, symbol and baseTokenURI
      */
     constructor(string memory _name, string memory _symbol, string memory _uri) ERC721A(_name, _symbol) {
@@ -113,6 +124,13 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         return _contentHashes[contentHash];
     }
 
+    /**
+     * @dev Returns the maximum the number of tokens limit.
+     */
+    function maxTokenLimit() public view returns (uint256) {
+        return _maxTokenLimit;
+    }
+
     /* ****************
      * External Functions
      * ****************
@@ -128,6 +146,12 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     onlyOwner
     {
         _baseTokenURI = _uri;
+    }
+
+    function updateMaxTokenLimit(uint256 limit) external
+    onlyOwner
+    {
+        _maxTokenLimit = limit;
     }
 
     function mint(uint256 quantity) external
@@ -179,6 +203,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     function _mintTo(address to, uint256 quantity) internal
     onlyMintAvailable
     onlyOperator
+    onlyWithinMaxTokenLimit(quantity)
     {
         _safeMint(to, quantity);
     }
@@ -186,6 +211,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     function _mintForCreator(address to, uint256 quantity, bytes32[] memory contentHashList) internal
     onlyMintAvailable
     onlyOperator
+    onlyWithinMaxTokenLimit(quantity)
     {
         require(contentHashList.length == quantity, "Avatar: quantity and contentHashList length mismatch");
 
