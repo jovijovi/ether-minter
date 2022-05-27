@@ -49,11 +49,11 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
-     * @notice Ensure that the provided sender is the approved or the owner of
+     * @notice Ensure that the provided spender is the approved or the owner of
      * the avatar for the specified tokenId
      */
-    modifier onlyApprovedOrOwner(address sender, uint256 tokenId) {
-        require(_isApprovedOrOwner(sender, tokenId), "Avatar: only approved or owner");
+    modifier onlyApprovedOrOwner(address spender, uint256 tokenId) {
+        require(_isApprovedOrOwner(spender, tokenId), "Avatar: only approved or owner");
         _;
     }
 
@@ -245,16 +245,16 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
-     * @dev Returns whether `sender` is allowed to manage `tokenId`.
+     * @dev Returns whether `spender` is allowed to manage `tokenId`.
      *
      * Requirements:
      *
      * - `tokenId` must exist.
      */
-    function _isApprovedOrOwner(address sender, uint256 tokenId) internal view returns (bool) {
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view returns (bool) {
         require(_exists(tokenId), "Avatar: operator query for nonexistent token");
         address owner = ownerOf(tokenId);
-        return (sender == owner || getApproved(tokenId) == sender || isApprovedForAll(owner, sender));
+        return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
     }
 
     function _setTokenContentHash(uint256 tokenId, bytes32 contentHash) internal virtual
