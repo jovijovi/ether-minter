@@ -13,6 +13,7 @@
 /git.json
 
 # builders
+/keystore
 /artifacts
 /cache
 /typechain-types
@@ -20,4 +21,6 @@
 /*.tar
 /*.tar.gz
 /conf_dev
+/conf_testnet
+/conf_mainnet
 /flattened
