@@ -8,9 +8,10 @@ An NFT minter microservice inspired by [ether-goblin](https://https://github.com
 
 - NFT Minter APIs
 - [Avatar NFT contract](./contracts/Avatar)
+- Mint NFT by random minter
+- Gas price circuit breaker
 - RESTFul APIs for the Ethereum ecosystem
-- Microservice
-- Run in Docker
+- Microservice run in Docker
 
 ## Supported Chains
 
