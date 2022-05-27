@@ -30,6 +30,43 @@ log:
   level: DEBUG
 
 custom:
+  minter:
+    # NFT contract address
+    contractAddress: 'NFT_CONTRACT_ADDRESS'
+
+    # Gas price threshold
+    gasPrice:
+      # Gas upper threshold (unit: Gwei)
+      # If the gas price is higher than this threshold, mint request will be dropped.
+      # Leave empty to disable.
+      upper:
+        threshold: '100'
+        # Sends a notification when gas price goes above a threshold.
+        callback: ''
+
+      # Gas lower threshold (unit: Gwei)
+      # Leave empty to disable.
+      lower:
+        threshold: '50'
+        # Sends a notification when gas price goes below a threshold.
+        callback: ''
+
+    # RESTFul API response code
+    apiResponseCode:
+      OK: 'YOUR_RESPONSE_CODE'
+      ERROR: 'YOUR_RESPONSE_CODE'
+      THRESHOLD: 'YOUR_RESPONSE_CODE'
+
+    # Mints NFT by random minter, set 'true' to enable (Optional)
+    randomMinter: true
+
+    # Minter pool
+    minterPool:
+      - address: 'MINTER_1_ADDRESS'
+        keyStoreSK: ''
+      - address: 'MINTER_2_ADDRESS'
+        keyStoreSK: ''
+
   # Default network
   defaultNetwork:
     # Chain name
