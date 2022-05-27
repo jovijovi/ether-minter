@@ -129,6 +129,14 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         return _contentHashes[contentHash];
     }
 
+    /**
+     * @dev Returns whether "contentHash" has ever existed.
+     */
+    function contentHashExists(bytes32 contentHash) public view returns (bool)
+    {
+        return _contentHashes[contentHash] > 0;
+    }
+
     /* ****************
      * External Functions
      * ****************
