@@ -2,7 +2,7 @@
 
 [![GitHub Actions](https://github.com/jovijovi/ether-minter/workflows/Test/badge.svg)](https://github.com/jovijovi/ether-minter)
 
-An NFT minter microservice inspired by [ether-goblin](https://https://github.com/jovijovi/ether-goblin).
+An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijovi/ether-goblin).
 
 ## Features
 
