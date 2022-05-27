@@ -30,7 +30,7 @@ log:
   level: DEBUG
 
 custom:
-  minter:
+  mint:
     # NFT contract address
     contractAddress: 'NFT_CONTRACT_ADDRESS'
 
@@ -60,8 +60,8 @@ custom:
     # Mints NFT by random minter, set 'true' to enable (Optional)
     randomMinter: true
 
-    # Minter pool
-    minterPool:
+    # Minter list
+    minterList:
       - address: 'MINTER_1_ADDRESS'
         keyStoreSK: ''
       - address: 'MINTER_2_ADDRESS'
