@@ -777,6 +777,14 @@
     "@jovijovi/pedrojs-common" "^1.0.27"
     ethers "5.6.7"
 
+"@jovijovi/ether-keystore@0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@jovijovi/ether-keystore/-/ether-keystore-0.1.7.tgz#7a2ed7b65695cf53915070e6d9048420cb602280"
+  integrity sha512-dgLX7jKED3xJoGYNPlBq5IaJYR5DtP9DnPrrTkmYK3QxztnArx4xiIQHCFQHWhHIFfv3NMXUsbQlFnT0q4J7iA==
+  dependencies:
+    "@jovijovi/pedrojs-common" "^1.0.27"
+    ethers "5.6.7"
+
 "@jovijovi/ether-network@0.1.2", "@jovijovi/ether-network@^0.1.0":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@jovijovi/ether-network/-/ether-network-0.1.2.tgz#fb3d982344d5ff9a8c55f51c813f58a9edb418e9"

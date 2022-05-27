@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@jovijovi/ether-core": "0.1.2",
+    "@jovijovi/ether-keystore": "0.1.7",
     "@jovijovi/ether-network": "0.1.2",
     "@jovijovi/pedrojs-common": "1.0.27",
     "@jovijovi/pedrojs-network-http": "1.0.27",
