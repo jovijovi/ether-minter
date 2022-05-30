@@ -8,14 +8,14 @@ import {KEY} from '@jovijovi/pedrojs-network-http/middleware/requestid';
 // Get total supply
 export async function GetGetTotalSupply(req, res) {
 	if (!req.query ||
-		!req.query.address
+		!req.query.contractAddress
 	) {
 		return MyResponse.BadRequest(res);
 	}
 
 	try {
 		// Set cache ttl to 3 seconds by default
-		if (Cache.CacheTotalSupplyOfNFT.has(req.query.address)) {
+		if (Cache.CacheTotalSupplyOfNFT.has(req.query.contractAddress)) {
 			res.send(Cache.CacheTotalSupplyOfNFT.get(req.query.address));
 			return;
 		}
@@ -69,7 +69,7 @@ export async function EstimateGasOfTransferNFT(req, res) {
 // MintForCreator returns mint tx
 export async function MintForCreator(req, res) {
 	if (!req.body ||
-		!req.body.contract_address ||
+		!req.body.contractAddress ||
 		!req.body.toAddress ||
 		!req.body.contentHash
 	) {
@@ -79,7 +79,7 @@ export async function MintForCreator(req, res) {
 	try {
 		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
 
-		const result = await ABI.MintForCreator(req.body.contract_address, req.body.toAddress, req.body.contentHash, req[KEY]);
+		const result = await ABI.MintForCreator(req.body.contractAddress, req.body.toAddress, req.body.contentHash, req[KEY]);
 
 		res.send(result);
 
@@ -101,7 +101,7 @@ export async function MintForCreator(req, res) {
 // Get mint status
 export async function GetMintStatus(req, res) {
 	if (!req.query ||
-		!req.query.tx
+		!req.query.txHash
 	) {
 		return MyResponse.BadRequest(res);
 	}
@@ -109,7 +109,7 @@ export async function GetMintStatus(req, res) {
 	try {
 		log.RequestId(req[KEY]).debug("Request\n=%o", req.query);
 
-		const result = await ABI.GetMintReceipt(req.query.tx, req[KEY]);
+		const result = await ABI.GetMintReceipt(req.query.txHash, req[KEY]);
 
 		res.send(result);
 
@@ -182,13 +182,13 @@ export async function GetContractInfo(req, res) {
 export async function GetTokenInfo(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress ||
-		!req.query.token_id
+		!req.query.tokenId
 	) {
 		return MyResponse.BadRequest(res);
 	}
 
 	try {
-		const result = await ABI.GetTokenInfo(req.query.contractAddress, req.query.token_id);
+		const result = await ABI.GetTokenInfo(req.query.contractAddress, req.query.tokenId);
 
 		res.send(result);
 
@@ -208,13 +208,13 @@ export async function GetTokenInfo(req, res) {
 export async function GetTokenContentHash(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress ||
-		!req.query.token_id
+		!req.query.tokenId
 	) {
 		return MyResponse.BadRequest(res);
 	}
 
 	try {
-		const result = await ABI.GetTokenContentHash(req.query.contractAddress, req.query.token_id);
+		const result = await ABI.GetTokenContentHash(req.query.contractAddress, req.query.tokenId);
 
 		res.send(result);
 
@@ -234,13 +234,13 @@ export async function GetTokenContentHash(req, res) {
 export async function GetTokenURI(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress ||
-		!req.query.token_id
+		!req.query.tokenId
 	) {
 		return MyResponse.BadRequest(res);
 	}
 
 	try {
-		const result = await ABI.GetTokenURI(req.query.contractAddress, req.query.token_id);
+		const result = await ABI.GetTokenURI(req.query.contractAddress, req.query.tokenId);
 
 		res.send(result);
 
@@ -259,13 +259,13 @@ export async function GetTokenURI(req, res) {
 
 export async function GetSymbol(req, res) {
 	if (!req.query ||
-		!req.query.address
+		!req.query.contractAddress
 	) {
 		return MyResponse.BadRequest(res);
 	}
 
 	try {
-		const result = await ABI.GetSymbol(req.query.address);
+		const result = await ABI.GetSymbol(req.query.contractAddress);
 
 		res.send(result);
 
@@ -284,14 +284,14 @@ export async function GetSymbol(req, res) {
 
 export async function OwnerOf(req, res) {
 	if (!req.query ||
-		!req.query.contract_address ||
-		!req.query.token_id
+		!req.query.contractAddress ||
+		!req.query.tokenId
 	) {
 		return MyResponse.BadRequest(res);
 	}
 
 	try {
-		const result = await ABI.OwnerOf(req.query.contract_address, req.query.token_id);
+		const result = await ABI.OwnerOf(req.query.contractAddress, req.query.tokenId);
 
 		res.send(result);
 
@@ -310,14 +310,14 @@ export async function OwnerOf(req, res) {
 
 export async function BalanceOf(req, res) {
 	if (!req.query ||
-		!req.query.address ||
+		!req.query.contractAddress ||
 		!req.query.owner
 	) {
 		return MyResponse.BadRequest(res);
 	}
 
 	try {
-		const result = await ABI.BalanceOf(req.query.address, req.query.owner);
+		const result = await ABI.BalanceOf(req.query.contractAddress, req.query.owner);
 
 		res.send(result);
 

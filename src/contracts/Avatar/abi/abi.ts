@@ -263,7 +263,7 @@ export async function OwnerOf(address: string, tokenId: string) {
 	return {
 		code: customConfig.GetMintRspCode().OK,
 		data: {
-			address: await contract.ownerOf(tokenId),
+			owner: await contract.ownerOf(tokenId),
 		}
 	}
 }
