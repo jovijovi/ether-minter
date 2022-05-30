@@ -6,7 +6,7 @@ import {core} from '@jovijovi/ether-core';
 import {customConfig} from '../../../config';
 import {GetContract} from './common';
 import {GetMinter} from './minter';
-import {KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
+import {Confirmations, KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
 import {GasPriceCircuitBreaker} from './breaker';
 import {CheckTopics} from './topics';
 
@@ -109,7 +109,10 @@ export async function GetMintReceipt(txHash: string, reqId?: string): Promise<an
 	}
 
 	const tokenIds: number[] = [];
-	if (receipt.status === StatusSuccessful) {
+	// Get confirmations from config
+	const confirmations = customConfig.GetTxConfig().confirmations ? customConfig.GetTxConfig().confirmations : Confirmations;
+	// Check receipt status
+	if (receipt.status === StatusSuccessful && receipt.confirmations >= confirmations) {
 		for (let i = 0; i < receipt.logs.length; i++) {
 			if (!CheckTopics(receipt.logs[i].topics)) {
 				log.RequestId(reqId).trace("not an ERC721 topics, topics=%o", receipt.logs[i].topics);
