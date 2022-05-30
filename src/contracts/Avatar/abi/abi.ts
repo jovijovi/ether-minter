@@ -1,12 +1,14 @@
-import {BigNumber, utils} from 'ethers';
+import {BigNumber, constants, utils} from 'ethers';
 import {log} from '@jovijovi/pedrojs-common';
 import {keystore} from '@jovijovi/ether-keystore';
 import {network} from '@jovijovi/ether-network';
+import {core} from '@jovijovi/ether-core';
 import {customConfig} from '../../../config';
 import {GetContract} from './common';
 import {GetMinter} from './minter';
 import {KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
-import {GasPriceCircuitBreaker} from "./breaker";
+import {GasPriceCircuitBreaker} from './breaker';
+import {CheckTopics} from './topics';
 
 // GetTotalSupply returns NFT contract total supply
 export async function GetTotalSupply(address: string): Promise<any> {
@@ -89,6 +91,48 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 		data: {
 			"txHash": tx.hash,
 			"tx": tx,
+		}
+	};
+}
+
+// Get mint receipt
+export async function GetMintReceipt(txHash: string, reqId?: string): Promise<any> {
+	const receipt = await core.GetTxReceipt(txHash);
+
+	if (!receipt) {
+		return {
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: "transaction not exist",
+		};
+	}
+
+	const tokenIds: number[] = [];
+	if (receipt.status === StatusSuccessful) {
+		for (let i = 0; i < receipt.logs.length; i++) {
+			if (!CheckTopics(receipt.logs[i].topics)) {
+				log.RequestId(reqId).trace("not an ERC721 topics, topics=%o", receipt.logs[i].topics);
+				continue;
+			}
+
+			if (receipt.logs[i].topics[1] !== constants.HashZero) {
+				log.RequestId(reqId).trace("not Mint tx, topics=%o", receipt.logs[i].topics);
+				continue;
+			}
+
+			const tokenId = receipt.logs[i].topics[3];
+			tokenIds.push(Number(tokenId));
+			log.RequestId(reqId).debug("TokenId=%s, status=minted, block=%d, tx=%s", utils.stripZeros(tokenId), receipt.blockNumber, txHash);
+		}
+	}
+
+	log.RequestId(reqId).trace("Mint Receipt=%o", receipt);
+
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			token_id: tokenIds,
+			status: receipt.status,
+			receipt: receipt,
 		}
 	};
 }

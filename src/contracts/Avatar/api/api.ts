@@ -97,3 +97,33 @@ export async function MintForCreator(req, res) {
 
 	return;
 }
+
+// Get mint status
+export async function GetMintStatus(req, res) {
+	if (!req.query ||
+		!req.query.tx
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).debug("Request\n=%o", req.query);
+
+		const result = await ABI.GetMintReceipt(req.query.tx, req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("GetMintStatus failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
