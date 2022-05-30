@@ -7,24 +7,24 @@ import {KEY} from '@jovijovi/pedrojs-network-http/middleware/requestid';
 
 // Get total supply
 export async function GetGetTotalSupply(req, res) {
-	if (!req.params ||
-		!req.params.address
+	if (!req.query ||
+		!req.query.address
 	) {
 		return MyResponse.BadRequest(res);
 	}
 
 	try {
 		// Set cache ttl to 3 seconds by default
-		if (Cache.CacheTotalSupplyOfNFT.has(req.params.address)) {
-			res.send(Cache.CacheTotalSupplyOfNFT.get(req.params.address));
+		if (Cache.CacheTotalSupplyOfNFT.has(req.query.address)) {
+			res.send(Cache.CacheTotalSupplyOfNFT.get(req.query.address));
 			return;
 		}
 
-		const result = await ABI.GetTotalSupply(req.params.address);
+		const result = await ABI.GetTotalSupply(req.query.address);
 
 		res.send(result);
 
-		Cache.CacheTotalSupplyOfNFT.set(req.params.address, result);
+		Cache.CacheTotalSupplyOfNFT.set(req.query.address, result);
 	} catch (e) {
 		return MyResponse.Error(res, e);
 	}
