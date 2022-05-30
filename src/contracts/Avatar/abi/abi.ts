@@ -197,3 +197,21 @@ export async function GetTokenInfo(address: string, tokenId: string): Promise<an
 		}
 	}
 }
+
+// Get token content hash
+export async function GetTokenContentHash(address: string, tokenId: string): Promise<any> {
+	const contract = GetContract(address);
+	if (!await contract.exists(tokenId)) {
+		return {
+			code: customConfig.GetMint().apiResponseCode.NOTFOUND,
+			msg: "tokenId not exist"
+		}
+	}
+
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			contentHash: await contract.tokenContentHashes(tokenId),
+		}
+	}
+}
