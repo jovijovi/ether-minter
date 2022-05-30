@@ -16,4 +16,5 @@ function v3APIs(router: core.Express) {
 	router.get('/api/v3/contracts/mintStatus', API.GetMintStatus);
 	router.get('/api/v3/contracts/tokenIdByContentHash', API.GetTokenIdByContentHash);
 	router.get('/api/v3/contracts/info', API.GetContractInfo);
+	router.get('/api/v3/contracts/tokenInfo', API.GetTokenInfo);
 }

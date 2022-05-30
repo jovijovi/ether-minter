@@ -178,3 +178,22 @@ export async function GetContractInfo(address: string): Promise<any> {
 		}
 	};
 }
+
+// Get token info
+export async function GetTokenInfo(address: string, tokenId: string): Promise<any> {
+	const contract = GetContract(address);
+	if (!await contract.exists(tokenId)) {
+		return {
+			code: customConfig.GetMint().apiResponseCode.NOTFOUND,
+			msg: "tokenId not exist"
+		}
+	}
+
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			tokenURI: await contract.tokenURI(tokenId),
+			contentHash: await contract.tokenContentHashes(tokenId),
+		}
+	}
+}

@@ -178,3 +178,29 @@ export async function GetContractInfo(req, res) {
 		return;
 	}
 }
+
+export async function GetTokenInfo(req, res) {
+	if (!req.query ||
+		!req.query.contractAddress ||
+		!req.query.token_id
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		const result = await ABI.GetTokenInfo(req.query.contractAddress, req.query.token_id);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("GetTokenInfo failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+}
