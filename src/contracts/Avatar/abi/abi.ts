@@ -233,3 +233,14 @@ export async function GetTokenURI(address: string, tokenId: string): Promise<any
 		}
 	}
 }
+
+// Get symbol
+export async function GetSymbol(address: string) {
+	const contract = GetContract(address);
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			symbol: await contract.symbol(),
+		}
+	}
+}
