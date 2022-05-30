@@ -85,7 +85,7 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 	});
 
 	log.RequestId(reqId).info("Mint tx committed. ContractAddress=%s, ToAddress=%s, Minter=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
-		address, to, minter.address, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice, "gwei"));
+		address, to, minter.address, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
 
 	return {
 		code: customConfig.GetMintRspCode().OK,
