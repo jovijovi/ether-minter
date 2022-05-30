@@ -154,3 +154,27 @@ export async function GetTokenIdByContentHash(address: string, contentHash: stri
 		}
 	};
 }
+
+// Get contract info
+export async function GetContractInfo(address: string): Promise<any> {
+	const contract = GetContract(address);
+	const name = await contract.name();
+	const symbol = await contract.symbol();
+	const totalSupply = await contract.totalSupply();
+	const owner = await contract.owner();
+	const mintable = await contract.finalization() ? 0 : 1;
+
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			name: name,
+			symbol: symbol,
+			supply: totalSupply.toNumber(),
+			owner: owner,
+			address: address,
+			mintable: mintable,
+			burnable: 1,
+			deploy: 1,
+		}
+	};
+}
