@@ -16,15 +16,15 @@ export async function GetGetTotalSupply(req, res) {
 	try {
 		// Set cache ttl to 3 seconds by default
 		if (Cache.CacheTotalSupplyOfNFT.has(req.query.contractAddress)) {
-			res.send(Cache.CacheTotalSupplyOfNFT.get(req.query.address));
+			res.send(Cache.CacheTotalSupplyOfNFT.get(req.query.contractAddress));
 			return;
 		}
 
-		const result = await ABI.GetTotalSupply(req.query.address);
+		const result = await ABI.GetTotalSupply(req.query.contractAddress);
 
 		res.send(result);
 
-		Cache.CacheTotalSupplyOfNFT.set(req.query.address, result);
+		Cache.CacheTotalSupplyOfNFT.set(req.query.contractAddress, result);
 	} catch (e) {
 		return MyResponse.Error(res, e);
 	}

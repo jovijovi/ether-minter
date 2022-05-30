@@ -57,7 +57,7 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 			msg: "Duplicate contentHash",
 			data: {
 				"status": StatusSuccessful,
-				"token_id": tokenId.toNumber(),
+				"tokenId": tokenId.toNumber(),
 			}
 		};
 	}
@@ -135,7 +135,7 @@ export async function GetMintReceipt(txHash: string, reqId?: string): Promise<an
 	return {
 		code: customConfig.GetMintRspCode().OK,
 		data: {
-			token_id: tokenIds,
+			tokenId: tokenIds,
 			status: receipt.status,
 			receipt: receipt,
 		}
