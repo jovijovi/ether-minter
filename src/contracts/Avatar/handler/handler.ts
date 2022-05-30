@@ -7,7 +7,6 @@ export function APIs(router: core.Express) {
 }
 
 function defaultAPIs(router: core.Express) {
-	router.get('/api/v1/nft/totalsupply/:address', API.GetGetTotalSupply);
 	router.post('/api/v1/nft/estimate/transfer', API.EstimateGasOfTransferNFT);
 }
 
@@ -21,4 +20,5 @@ function v3APIs(router: core.Express) {
 	router.get('/api/v3/contracts/tokenURI', API.GetTokenURI);
 	router.get('/api/v3/contracts/symbol', API.GetSymbol);
 	router.get('/api/v3/contracts/ownerOf', API.OwnerOf);
+	router.get('/api/v3/contracts/totalsupply/:address', API.GetGetTotalSupply);
 }
