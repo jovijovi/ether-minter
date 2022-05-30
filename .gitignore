@@ -14,6 +14,9 @@
 
 # builders
 /keystore
+/keystore_dev
+/keystore_testnet
+/keystore_mainnet
 /artifacts
 /cache
 /typechain-types
