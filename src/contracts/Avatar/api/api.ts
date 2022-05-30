@@ -127,3 +127,31 @@ export async function GetMintStatus(req, res) {
 
 	return;
 }
+
+export async function GetTokenIdByContentHash(req, res) {
+	if (!req.query ||
+		!req.query.contractAddress ||
+		!req.query.contentHash
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		const result = await ABI.GetTokenIdByContentHash(req.query.contractAddress, req.query.contentHash);
+
+		res.send({
+			tokenId: result,
+		});
+
+		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("GetTokenIdByContentHash failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+}

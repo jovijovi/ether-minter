@@ -136,3 +136,10 @@ export async function GetMintReceipt(txHash: string, reqId?: string): Promise<an
 		}
 	};
 }
+
+// Get tokenId by content hash
+export async function GetTokenIdByContentHash(address: string, contentHash: string, reqId?: string): Promise<number> {
+	const contract = GetContract(address);
+	const tokenId = await contract.getTokenIdByContentHash(contentHash);
+	return tokenId.toNumber();
+}
