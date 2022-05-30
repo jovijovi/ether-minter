@@ -244,3 +244,21 @@ export async function GetSymbol(address: string) {
 		}
 	}
 }
+
+// Get owner of NFT by tokenId
+export async function OwnerOf(address: string, tokenId: string) {
+	const contract = GetContract(address);
+	if (!await contract.exists(tokenId)) {
+		return {
+			code: customConfig.GetMint().apiResponseCode.NOTFOUND,
+			msg: "tokenId not exist"
+		}
+	}
+
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			address: await contract.ownerOf(tokenId),
+		}
+	}
+}
