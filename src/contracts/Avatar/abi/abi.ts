@@ -138,8 +138,19 @@ export async function GetMintReceipt(txHash: string, reqId?: string): Promise<an
 }
 
 // Get tokenId by content hash
-export async function GetTokenIdByContentHash(address: string, contentHash: string, reqId?: string): Promise<number> {
+export async function GetTokenIdByContentHash(address: string, contentHash: string): Promise<any> {
 	const contract = GetContract(address);
+	if (!await contract.contentHashExists(contentHash)) {
+		return {
+			code: customConfig.GetMint().apiResponseCode.NOTFOUND,
+			msg: "not found the content hash",
+		};
+	}
 	const tokenId = await contract.getTokenIdByContentHash(contentHash);
-	return tokenId.toNumber();
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			tokenId: tokenId.toNumber()
+		}
+	};
 }

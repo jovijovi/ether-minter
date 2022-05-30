@@ -139,9 +139,7 @@ export async function GetTokenIdByContentHash(req, res) {
 	try {
 		const result = await ABI.GetTokenIdByContentHash(req.query.contractAddress, req.query.contentHash);
 
-		res.send({
-			tokenId: result,
-		});
+		res.send(result);
 
 		log.RequestId(req[KEY]).debug("Result=\n%o", result);
 	} catch (e) {
