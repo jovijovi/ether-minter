@@ -57,6 +57,7 @@ custom:
       ERROR: 'YOUR_RESPONSE_CODE'
       THRESHOLD: 'YOUR_RESPONSE_CODE'
       DUPLICATE: 'YOUR_RESPONSE_CODE'
+      NOTFOUND: 'YOUR_RESPONSE_CODE'
 
     # Mints NFT by random minter, set 'true' to enable (Optional)
     randomMinter: true

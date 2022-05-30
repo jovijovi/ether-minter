@@ -1,26 +1,30 @@
-import {BigNumber, utils} from 'ethers';
-import {log} from '@jovijovi/pedrojs-common';
+import {BigNumber, constants, utils} from 'ethers';
+import {auditor, log} from '@jovijovi/pedrojs-common';
 import {keystore} from '@jovijovi/ether-keystore';
 import {network} from '@jovijovi/ether-network';
+import {core} from '@jovijovi/ether-core';
 import {customConfig} from '../../../config';
 import {GetContract} from './common';
 import {GetMinter} from './minter';
-import {KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
-import {GasPriceCircuitBreaker} from "./breaker";
+import {Confirmations, KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
+import {GasPriceCircuitBreaker} from './breaker';
+import {CheckTopics} from './topics';
 
 // GetTotalSupply returns NFT contract total supply
 export async function GetTotalSupply(address: string): Promise<any> {
-	const provider = network.MyProvider.Get();
-	const blockNumber = await provider.getBlockNumber();
-
 	const contract = GetContract(address);
 	const totalSupply = await contract.totalSupply();
 
+	const provider = network.MyProvider.Get();
+	const blockNumber = await provider.getBlockNumber();
+
 	log.RequestId().debug("BlockNumber=%s, address=%s, totalSupply=%s", blockNumber.toString(), address, totalSupply.toString());
 	return {
-		blockNumber: blockNumber,
-		address: address,
-		totalSupply: totalSupply.toString(),
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			totalSupply: totalSupply.toString(),
+			blockNumber: blockNumber,
+		}
 	}
 }
 
@@ -49,11 +53,11 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 
 		// If content hash exists, return tokenId
 		return {
-			code: customConfig.GetMint().apiResponseCode.DUPLICATE,
+			code: customConfig.GetMintRspCode().DUPLICATE,
 			msg: "Duplicate contentHash",
 			data: {
 				"status": StatusSuccessful,
-				"token_id": tokenId.toNumber(),
+				"tokenId": tokenId.toNumber(),
 			}
 		};
 	}
@@ -64,7 +68,7 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice)) {
 		return {
-			code: customConfig.GetMint().apiResponseCode.THRESHOLD,
+			code: customConfig.GetMintRspCode().THRESHOLD,
 			msg: "Gas price circuit breaker",
 		};
 	}
@@ -81,14 +85,197 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 	});
 
 	log.RequestId(reqId).info("Mint tx committed. ContractAddress=%s, ToAddress=%s, Minter=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
-		address, to, minter.address, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice, "gwei"));
+		address, to, minter.address, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
 
 	return {
-		code: customConfig.GetMint().apiResponseCode.OK,
+		code: customConfig.GetMintRspCode().OK,
 		msg: "Mint tx committed",
 		data: {
 			"txHash": tx.hash,
 			"tx": tx,
 		}
 	};
+}
+
+// Get mint receipt
+export async function GetMintReceipt(txHash: string, reqId?: string): Promise<any> {
+	const receipt = await core.GetTxReceipt(txHash);
+
+	if (!receipt) {
+		return {
+			code: customConfig.GetMintRspCode().ERROR,
+			msg: "transaction not exist",
+		};
+	}
+
+	const tokenIds: number[] = [];
+
+	// Check receipt status
+	if (receipt.status === StatusSuccessful) {
+		for (let i = 0; i < receipt.logs.length; i++) {
+			if (!CheckTopics(receipt.logs[i].topics)) {
+				log.RequestId(reqId).trace("not an ERC721 topics, topics=%o", receipt.logs[i].topics);
+				continue;
+			}
+
+			if (receipt.logs[i].topics[1] !== constants.HashZero) {
+				log.RequestId(reqId).trace("not Mint tx, topics=%o", receipt.logs[i].topics);
+				continue;
+			}
+
+			const tokenId = receipt.logs[i].topics[3];
+			tokenIds.push(Number(tokenId));
+			log.RequestId(reqId).debug("TokenId=%s, status=minted, block=%d, tx=%s", utils.stripZeros(tokenId), receipt.blockNumber, txHash);
+		}
+	}
+
+	log.RequestId(reqId).trace("Mint Receipt=%o", receipt);
+
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			tokenId: tokenIds,
+			status: receipt.status,
+			receipt: receipt,
+		}
+	};
+}
+
+// Get tokenId by content hash
+export async function GetTokenIdByContentHash(address: string, contentHash: string): Promise<any> {
+	const contract = GetContract(address);
+	if (!await contract.contentHashExists(contentHash)) {
+		return {
+			code: customConfig.GetMintRspCode().NOTFOUND,
+			msg: "not found the content hash",
+		};
+	}
+	const tokenId = await contract.getTokenIdByContentHash(contentHash);
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			tokenId: tokenId.toNumber()
+		}
+	};
+}
+
+// Get contract info
+export async function GetContractInfo(address: string): Promise<any> {
+	const contract = GetContract(address);
+	const name = await contract.name();
+	const symbol = await contract.symbol();
+	const totalSupply = await contract.totalSupply();
+	const owner = await contract.owner();
+	const mintable = await contract.finalization() ? 0 : 1;
+
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			name: name,
+			symbol: symbol,
+			supply: totalSupply.toNumber(),
+			owner: owner,
+			address: address,
+			mintable: mintable,
+			burnable: 1,
+			deploy: 1,
+		}
+	};
+}
+
+// Get token info
+export async function GetTokenInfo(address: string, tokenId: string): Promise<any> {
+	const contract = GetContract(address);
+	if (!await contract.exists(tokenId)) {
+		return {
+			code: customConfig.GetMintRspCode().NOTFOUND,
+			msg: "tokenId not exist"
+		}
+	}
+
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			tokenURI: await contract.tokenURI(tokenId),
+			contentHash: await contract.tokenContentHashes(tokenId),
+		}
+	}
+}
+
+// Get token content hash
+export async function GetTokenContentHash(address: string, tokenId: string): Promise<any> {
+	const contract = GetContract(address);
+	if (!await contract.exists(tokenId)) {
+		return {
+			code: customConfig.GetMintRspCode().NOTFOUND,
+			msg: "tokenId not exist"
+		}
+	}
+
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			contentHash: await contract.tokenContentHashes(tokenId),
+		}
+	}
+}
+
+// Get tokenURI
+export async function GetTokenURI(address: string, tokenId: string): Promise<any> {
+	const contract = GetContract(address);
+	if (!await contract.exists(tokenId)) {
+		return {
+			code: customConfig.GetMintRspCode().NOTFOUND,
+			msg: "tokenId not exist"
+		}
+	}
+
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			tokenURI: await contract.tokenURI(tokenId),
+		}
+	}
+}
+
+// Get symbol
+export async function GetSymbol(address: string) {
+	const contract = GetContract(address);
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			symbol: await contract.symbol(),
+		}
+	}
+}
+
+// Get owner of NFT by tokenId
+export async function OwnerOf(address: string, tokenId: string) {
+	const contract = GetContract(address);
+	if (!await contract.exists(tokenId)) {
+		return {
+			code: customConfig.GetMintRspCode().NOTFOUND,
+			msg: "tokenId not exist"
+		}
+	}
+
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			owner: await contract.ownerOf(tokenId),
+		}
+	}
+}
+
+// Get balance of NFT owner
+export async function BalanceOf(address: string, owner: string) {
+	auditor.Check(utils.isAddress(owner), 'invalid owner address');
+	const contract = GetContract(address);
+	const balance = await contract.balanceOf(owner);
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			balance: balance.toNumber(),
+		}
+	}
 }
