@@ -215,3 +215,21 @@ export async function GetTokenContentHash(address: string, tokenId: string): Pro
 		}
 	}
 }
+
+// Get tokenURI
+export async function GetTokenURI(address: string, tokenId: string): Promise<any> {
+	const contract = GetContract(address);
+	if (!await contract.exists(tokenId)) {
+		return {
+			code: customConfig.GetMint().apiResponseCode.NOTFOUND,
+			msg: "tokenId not exist"
+		}
+	}
+
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			tokenURI: await contract.tokenURI(tokenId),
+		}
+	}
+}

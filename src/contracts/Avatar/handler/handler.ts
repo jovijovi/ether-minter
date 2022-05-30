@@ -18,4 +18,5 @@ function v3APIs(router: core.Express) {
 	router.get('/api/v3/contracts/info', API.GetContractInfo);
 	router.get('/api/v3/contracts/tokenInfo', API.GetTokenInfo);
 	router.get('/api/v3/contracts/tokenContentHash', API.GetTokenContentHash);
+	router.get('/api/v3/contracts/tokenURI', API.GetTokenURI);
 }

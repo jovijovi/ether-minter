@@ -230,3 +230,29 @@ export async function GetTokenContentHash(req, res) {
 		return;
 	}
 }
+
+export async function GetTokenURI(req, res) {
+	if (!req.query ||
+		!req.query.contractAddress ||
+		!req.query.token_id
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		const result = await ABI.GetTokenURI(req.query.contractAddress, req.query.token_id);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("GetTokenURI failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+}
