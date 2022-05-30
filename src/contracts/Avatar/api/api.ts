@@ -307,3 +307,29 @@ export async function OwnerOf(req, res) {
 		return;
 	}
 }
+
+export async function BalanceOf(req, res) {
+	if (!req.query ||
+		!req.query.address ||
+		!req.query.owner
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		const result = await ABI.BalanceOf(req.query.address, req.query.owner);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("BalanceOf failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+}

@@ -1,5 +1,5 @@
 import {BigNumber, constants, utils} from 'ethers';
-import {log} from '@jovijovi/pedrojs-common';
+import {auditor, log} from '@jovijovi/pedrojs-common';
 import {keystore} from '@jovijovi/ether-keystore';
 import {network} from '@jovijovi/ether-network';
 import {core} from '@jovijovi/ether-core';
@@ -261,6 +261,19 @@ export async function OwnerOf(address: string, tokenId: string) {
 		code: customConfig.GetMint().apiResponseCode.OK,
 		data: {
 			address: await contract.ownerOf(tokenId),
+		}
+	}
+}
+
+// Get balance of NFT owner
+export async function BalanceOf(address: string, owner: string) {
+	auditor.Check(utils.isAddress(owner), 'invalid owner address');
+	const contract = GetContract(address);
+	const balance = await contract.balanceOf(owner);
+	return {
+		code: customConfig.GetMint().apiResponseCode.OK,
+		data: {
+			balance: balance.toNumber(),
 		}
 	}
 }

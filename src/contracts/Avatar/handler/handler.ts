@@ -20,5 +20,6 @@ function v3APIs(router: core.Express) {
 	router.get('/api/v3/contracts/tokenURI', API.GetTokenURI);
 	router.get('/api/v3/contracts/symbol', API.GetSymbol);
 	router.get('/api/v3/contracts/ownerOf', API.OwnerOf);
+	router.get('/api/v3/contracts/balanceOf', API.BalanceOf);
 	router.get('/api/v3/contracts/totalsupply/:address', API.GetGetTotalSupply);
 }
