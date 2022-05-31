@@ -107,13 +107,13 @@ export async function GetMintStatus(req, res) {
 	}
 
 	try {
-		log.RequestId(req[KEY]).debug("Request\n=%o", req.query);
+		log.RequestId(req[KEY]).trace("Request=\n%o", req.query);
 
 		const result = await ABI.GetMintReceipt(req.query.txHash, req[KEY]);
 
 		res.send(result);
 
-		log.RequestId(req[KEY]).info("Result=\n%o", result);
+		log.RequestId(req[KEY]).trace("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("GetMintStatus failed, error=", e);
 
@@ -295,7 +295,7 @@ export async function OwnerOf(req, res) {
 
 		res.send(result);
 
-		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+		log.RequestId(req[KEY]).trace("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("OwnerOf failed, error=", e);
 
@@ -321,7 +321,7 @@ export async function BalanceOf(req, res) {
 
 		res.send(result);
 
-		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+		log.RequestId(req[KEY]).trace("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("BalanceOf failed, error=", e);
 
