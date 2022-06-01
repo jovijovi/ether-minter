@@ -7,5 +7,6 @@ services:
     restart: always
     volumes:
       - ../conf:/opt/app/conf
+      - ../keystore:/opt/app/keystore
     ports:
       - "27550:27550"

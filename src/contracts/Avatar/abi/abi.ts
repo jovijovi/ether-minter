@@ -6,7 +6,7 @@ import {core} from '@jovijovi/ether-core';
 import {customConfig} from '../../../config';
 import {GetContract} from './common';
 import {GetMinter} from './minter';
-import {Confirmations, KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
+import {KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
 import {GasPriceCircuitBreaker} from './breaker';
 import {CheckTopics} from './topics';
 

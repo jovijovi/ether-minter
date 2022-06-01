@@ -14,16 +14,11 @@
 
 # builders
 /keystore
-/keystore_dev
-/keystore_testnet
-/keystore_mainnet
 /artifacts
 /cache
 /typechain-types
 /dist
 /*.tar
 /*.tar.gz
-/conf_dev
-/conf_testnet
-/conf_mainnet
 /flattened
+/_dev
