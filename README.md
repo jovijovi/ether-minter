@@ -20,9 +20,9 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
 ## Development Environment
 
-- typescript `4.7.2`
-- node `v16.15.0`
-- ts-node `v10.8.0`
+- typescript `4.7.3`
+- node `v16.15.1`
+- ts-node `v10.8.1`
 - yarn `v1.22.18`
 
 ## Contract Dependencies
