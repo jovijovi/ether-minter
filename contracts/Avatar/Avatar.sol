@@ -27,7 +27,14 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
      */
     bool public finalization = false;
 
+    /**
+     * @dev A URL for the storefront-level metadata for contract.
+     */
     string private _contractURI;
+
+    /**
+     * @dev Base URI for computing {tokenURI}.
+     */
     string private _baseTokenURI;
 
     /**
