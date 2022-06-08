@@ -82,6 +82,14 @@ describe("NFT Contract", function () {
 		expect(symbol).to.equal(nftSymbol);
 	})
 
+	// Get all contentHash before minting
+	it("getAllContentHash(before minting)", async function () {
+		const contract = await attachContract(contractName, contractAddress);
+		const allContentHash = await contract.getAllContentHash();
+		console.debug("## All content hash =", allContentHash);
+		expect(allContentHash.length).to.equal(0);
+	})
+
 	// Mint to signer1
 	it("mintForCreator", async function () {
 		const contract = await attachContract(contractName, contractAddress);
@@ -91,6 +99,14 @@ describe("NFT Contract", function () {
 		expect(receipt.status).to.equal(StatusSuccessful);
 		console.debug("## MintForCreator %s completed, tx=", signer1Address, receipt.transactionHash);
 	});
+
+	// Get all contentHash after minting
+	it("getAllContentHash(after minting)", async function () {
+		const contract = await attachContract(contractName, contractAddress);
+		const allContentHash = await contract.getAllContentHash();
+		console.debug("## All content hash =", allContentHash);
+		expect(allContentHash.length).to.equal(1);
+	})
 
 	// Mint to signer2
 	it("mintTo", async function () {
