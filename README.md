@@ -10,6 +10,7 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 - [Avatar NFT contract](./contracts/Avatar)
 - Mint NFT by random minter
 - Gas price circuit breaker
+- Batch mint NFTs
 - RESTFul APIs for the Ethereum ecosystem
 - Microservice run in Docker
 
@@ -50,6 +51,12 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
   ```shell
   make docker
+  ```
+
+- Test
+
+  ```shell
+  yarn test
   ```
 
 - Run
