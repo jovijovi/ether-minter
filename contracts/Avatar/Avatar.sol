@@ -12,27 +12,34 @@ import "./Permission.sol";
  * @title An avatar NFT contract.
  */
 contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl {
-
     /* *******
      * Globals
      * *******
      */
 
-    // Maximum supply
+    /**
+     * @dev Maximum supply.
+     */
     uint256 public maxSupply = 1000;
 
-    // Finalization state, only false can permit mint
+    /**
+     * @dev Finalization state, only false can permit mint.
+     */
     bool public finalization = false;
 
     string private _contractURI;
     string private _baseTokenURI;
 
-    // Mapping from token id to sha256 hash of content
-    // (tokenId <-> avatar content hash)
+    /**
+     * @dev Mapping from token id to sha256 hash of content.
+     * (tokenId <-> avatar content hash)
+     */
     mapping(uint256 => bytes32) public tokenContentHashes;
 
-    // Mapping from contentHash to tokenID
-    // (avatar content hash <-> tokenId)
+    /**
+     * @dev Mapping from contentHash to tokenID.
+     * (avatar content hash <-> tokenId)
+     */
     mapping(bytes32 => uint256) private _contentHashes;
 
     /* *********
@@ -87,7 +94,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
-     * @notice On deployment, set the avatar name, symbol and baseTokenURI
+     * @dev Initializes the contract by setting a `name` and a `symbol` and baseTokenURI to the token collection.
      */
     constructor(string memory _name, string memory _symbol, string memory _uri) ERC721A(_name, _symbol) {
         _baseTokenURI = _uri;
@@ -98,7 +105,10 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
      * ****************
      */
 
-    //https://docs.opensea.io/docs/contract-level-metadata
+    /**
+     * @notice A URL for the storefront-level metadata for contract.
+     * @dev Ref: https://docs.opensea.io/docs/contract-level-metadata
+     */
     function contractURI() public view returns (string memory) {
         return _contractURI;
     }
@@ -115,6 +125,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         _burn(tokenId);
     }
 
+    /**
+     * @dev Returns whether `tokenId` exists.
+     */
     function exists(uint256 tokenId) public view returns (bool) {
         return _exists(tokenId);
     }
@@ -137,41 +150,59 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         return _contentHashes[contentHash] > 0;
     }
 
-    /* ****************
+    /* ******************
      * External Functions
-     * ****************
+     * ******************
      */
 
+    /**
+     * @dev Change contractURI.
+     */
     function changeContractURI(string memory _uri) external
     onlyOwner
     {
         _contractURI = _uri;
     }
 
+    /**
+     * @dev Set baseTokenURI.
+     */
     function setBaseTokenURI(string memory _uri) external
     onlyOwner
     {
         _baseTokenURI = _uri;
     }
 
+    /**
+     * @dev Set max supply.
+     */
     function setMaxSupply(uint256 _val) external
     onlyOwner
     {
         maxSupply = _val;
     }
 
+    /**
+     * @dev Mint to message sender.
+     */
     function mint(uint256 quantity) external
     nonReentrant
     {
         _mintTo(_msgSender(), quantity);
     }
 
+    /**
+     * @dev Mint to specified address.
+     */
     function mintTo(address to, uint256 quantity) external
     nonReentrant
     {
         _mintTo(to, quantity);
     }
 
+    /**
+     * @dev Mint to specified address with content hash list.
+     */
     function mintForCreator(address to, uint256 quantity, bytes32[] memory contentHashList) external
     nonReentrant
     {
@@ -188,9 +219,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         finalization = true;
     }
 
-    /* *****************
-     * Private Functions
-     * *****************
+    /* ******************
+     * Internal Functions
+     * ******************
      */
 
     /**
@@ -214,6 +245,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         _safeMint(to, quantity);
     }
 
+    /**
+     * @dev Mint to specified address with content hash list.
+     */
     function _mintForCreator(address to, uint256 quantity, bytes32[] memory contentHashList) internal
     onlyMintAvailable
     onlyOperator
@@ -234,11 +268,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         }
     }
 
-    /* *****************
-     * Internal Functions
-     * *****************
+    /**
+     * @dev Returns the starting token ID.
      */
-
     function _startTokenId() internal view override virtual returns (uint256) {
         return 1;
     }
@@ -265,6 +297,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
     }
 
+    /**
+     * @dev Set token content hash.
+     */
     function _setTokenContentHash(uint256 tokenId, bytes32 contentHash) internal virtual
     onlyExistingToken(tokenId)
     {
