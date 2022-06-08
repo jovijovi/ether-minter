@@ -66,10 +66,12 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 	const gasPrice = await provider.getGasPrice();
 
 	// Check gasPrice by circuit breaker
-	if (GasPriceCircuitBreaker(gasPrice)) {
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("Mint request terminated due to high gas price. ContractAddress=%s, ToAddress=%s, Minter=%s, GasPrice=%sGwei",
+			address, to, minter.address, utils.formatUnits(gasPrice, "gwei"));
 		return {
 			code: customConfig.GetMintRspCode().THRESHOLD,
-			msg: "Gas price circuit breaker",
+			msg: "Mint request terminated due to high gas price",
 		};
 	}
 
