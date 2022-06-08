@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Avatar Contract v0.2.1
+// Avatar Contract v0.2.2
 pragma solidity ^0.8.4;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
@@ -101,10 +101,10 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
-     * @dev Initializes the contract by setting a `name` and a `symbol` and baseTokenURI to the token collection.
+     * @dev Initializes the contract by setting a `name` and a `symbol` and `baseTokenURI` to the token collection.
      */
-    constructor(string memory _name, string memory _symbol, string memory _uri) ERC721A(_name, _symbol) {
-        _baseTokenURI = _uri;
+    constructor(string memory name_, string memory symbol_, string memory baseTokenURI_) ERC721A(name_, symbol_) {
+        _baseTokenURI = baseTokenURI_;
     }
 
     /* ****************
@@ -165,28 +165,28 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     /**
      * @dev Change contractURI.
      */
-    function changeContractURI(string memory _uri) external
+    function changeContractURI(string memory contractURI_) external
     onlyOwner
     {
-        _contractURI = _uri;
+        _contractURI = contractURI_;
     }
 
     /**
      * @dev Set baseTokenURI.
      */
-    function setBaseTokenURI(string memory _uri) external
+    function setBaseTokenURI(string memory baseTokenURI_) external
     onlyOwner
     {
-        _baseTokenURI = _uri;
+        _baseTokenURI = baseTokenURI_;
     }
 
     /**
      * @dev Set max supply.
      */
-    function setMaxSupply(uint256 _val) external
+    function setMaxSupply(uint256 val) external
     onlyOwner
     {
-        maxSupply = _val;
+        maxSupply = val;
     }
 
     /**
