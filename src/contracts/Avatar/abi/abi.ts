@@ -38,18 +38,50 @@ export async function EstimateGasOfTransferNFT(address: string, from: string, to
 }
 
 // Mint
-export async function MintForCreator(address: string, to: string, contentHash: string, reqId?: string): Promise<any> {
+export async function MintForCreator(address: string, to: string, contentHash: any, reqId?: string): Promise<any> {
+	if (typeof contentHash === 'string') {
+		// Single mint (for compatible)
+		return await mintForCreator(address, to, [contentHash], MintQuantity, reqId);
+	} else if (Array.isArray(contentHash)) {
+		// Batch mint
+		return await mintForCreator(address, to, contentHash, contentHash.length, reqId);
+	}
+
+	throw new Error(`invalid type of contentHash`);
+}
+
+// Mint to the specified address
+async function mintForCreator(address: string, to: string, contentHashList: string[], quantity: number, reqId?: string): Promise<any> {
+	// Step 1. Get minter
 	const provider = network.MyProvider.Get();
 	const minter = GetMinter(customConfig.GetMint().randomMinter);
 	const pk = await keystore.InspectKeystorePK(minter.address, KeystoreTypeMinter, minter.keyStoreSK);
 	const contract = GetContract(address, pk);
 
-	// Check if content hash exists
-	if (await contract.contentHashExists(contentHash)) {
-		const tokenId = await contract.getTokenIdByContentHash(contentHash);
+	// Step 2. Check if content hash exists
+	const duplicateContentHash: string[] = [];
+	if (contentHashList.length === 1) {
+		if (await contract.contentHashExists(contentHashList[0])) {
+			duplicateContentHash.push(contentHashList[0]);
+		}
+	} else {
+		const allContentHash = await contract.getAllContentHash();
+		for (const contentHash of contentHashList) {
+			if (allContentHash.includes(contentHash)) {
+				duplicateContentHash.push(contentHash);
+			}
+		}
+	}
 
-		log.RequestId(reqId).info("Duplicate contentHash(%s) found. Token(ID=%s) with the same content hash. ContractAddress=%s, ToAddress=%s",
-			contentHash, tokenId.toString(), address, to);
+	if (duplicateContentHash.length > 0) {
+		const duplicateTokenId: number[] = [];
+		for (const contentHash of duplicateContentHash) {
+			const tokenId = await contract.getTokenIdByContentHash(contentHash);
+			duplicateTokenId.push(tokenId.toNumber());
+
+			log.RequestId(reqId).warn("Duplicate contentHash(%s) found, mint request ignored. Token(ID=%s) with the same content hash. ContractAddress=%s, ToAddress=%s",
+				contentHash, tokenId.toString(), address, to);
+		}
 
 		// If content hash exists, return tokenId
 		return {
@@ -57,11 +89,12 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 			msg: "Duplicate contentHash",
 			data: {
 				"status": StatusSuccessful,
-				"tokenId": tokenId.toNumber(),
+				"tokenId": duplicateTokenId,
 			}
 		};
 	}
 
+	// Step 3. Check gas price
 	// Get gas price (Unit: Wei)
 	const gasPrice = await provider.getGasPrice();
 
@@ -75,13 +108,15 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 		};
 	}
 
-	const estimateGas = await contract.estimateGas.mintForCreator(to, MintQuantity, [contentHash]);
+	// Step 4. Estimate gas
+	const estimateGas = await contract.estimateGas.mintForCreator(to, quantity, contentHashList);
 	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
 
 	log.RequestId(reqId).info("Minting... ContractAddress=%s, ToAddress=%s, Minter=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
 		address, to, minter.address, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
 
-	const tx = await contract.mintForCreator(to, MintQuantity, [contentHash], {
+	// Step 5. Mint
+	const tx = await contract.mintForCreator(to, quantity, contentHashList, {
 		gasPrice: gasPrice,
 		gasLimit: gasLimit,
 	});
@@ -89,6 +124,7 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 	log.RequestId(reqId).info("Mint tx committed. ContractAddress=%s, ToAddress=%s, Minter=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
 		address, to, minter.address, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
 
+	// Step 6. Build response
 	return {
 		code: customConfig.GetMintRspCode().OK,
 		msg: "Mint tx committed",
