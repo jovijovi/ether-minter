@@ -162,7 +162,7 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
      */
     function getAllContentHash() public view returns (bytes32[] memory)
     {
-        uint256 length = _nextTokenId() - 1 >= 0 ? nextTokenId() - 1 : 0;
+        uint256 length = _nextTokenId() - 1 >= 0 ? _nextTokenId() - 1 : 0;
         bytes32[] memory allContentHash = new bytes32[](length);
 
         for (uint256 i = _startTokenId(); i <= length; i++) {
