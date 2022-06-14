@@ -1,9 +1,9 @@
 import {log} from '@jovijovi/pedrojs-common';
-import {response as MyResponse} from '@jovijovi/pedrojs-network-http/server';
+import {KEY} from '@jovijovi/pedrojs-network-http/middleware/requestid';
 import {ABI} from '../abi';
 import {Cache} from '../../../common/cache';
 import {customConfig} from '../../../config';
-import {KEY} from '@jovijovi/pedrojs-network-http/middleware/requestid';
+import * as MyResponse from '../../../common/response/response';
 
 // Get total supply
 export async function GetGetTotalSupply(req, res) {
@@ -54,9 +54,11 @@ export async function EstimateGasOfTransferNFT(req, res) {
 		const result = {
 			gasFee: await ABI.EstimateGasOfTransferNFT(req.body.address, req.body.from, req.body.to, req.body.tokenId)
 		};
-		res.send(result);
+		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)
 
-		Cache.CacheEstimateGasOfTransferNFT.set(key, result);
+		res.send(rsp);
+
+		Cache.CacheEstimateGasOfTransferNFT.set(key, rsp);
 
 		log.RequestId().info("Estimate transfer NFT tx(%o) gasFee=%s", req.body, result.gasFee);
 	} catch (e) {

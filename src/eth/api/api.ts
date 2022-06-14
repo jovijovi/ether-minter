@@ -1,16 +1,17 @@
 import {log} from '@jovijovi/pedrojs-common';
-import {response as MyResponse} from '@jovijovi/pedrojs-network-http';
 import {core} from '@jovijovi/ether-core';
 import {Cache} from '../../common/cache';
+import {customConfig} from '../../config';
+import * as MyResponse from '../../common/response/response';
 
 // Get gas price
 export async function getGasPrice(req, res) {
 	try {
 		const result = await core.GetGasPrice();
 
-		res.send(result);
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result));
 
-		log.RequestId().info(result);
+		log.RequestId().debug(result);
 	} catch (e) {
 		return MyResponse.Error(res, e);
 	}
@@ -37,7 +38,8 @@ export async function getTxReceipt(req, res) {
 		// Set value in response
 		const tx = await core.GetTxResponse(req.query.txHash);
 		receipt.value = tx.value.toString();
-		res.send(receipt);
+
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, receipt));
 
 		log.RequestId().info("receipt=", receipt);
 	} catch (e) {
@@ -63,7 +65,7 @@ export async function getTxResponse(req, res) {
 		if (!tx) {
 			return MyResponse.NotFound(res);
 		}
-		res.send(tx);
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, tx));
 
 		log.RequestId().info("tx=", tx);
 	} catch (e) {
@@ -78,9 +80,9 @@ export async function getBlockNumber(req, res) {
 	try {
 		const blockNumber = await core.GetBlockNumber();
 
-		res.send({
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
 			"blockNumber": blockNumber,
-		});
+		}));
 
 		log.RequestId().info("blockNumber=", blockNumber);
 	} catch (e) {
@@ -101,7 +103,7 @@ export async function getBlock(req, res) {
 	try {
 		const block = await core.GetBlock(req.query.blockHash);
 
-		res.send(block);
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, block));
 
 		log.RequestId().info("block=", block);
 	} catch (e) {
@@ -124,7 +126,7 @@ export async function getBalanceOf(req, res) {
 	try {
 		const balanceResult = await core.GetBalanceOf(req.query.address);
 
-		res.send(balanceResult);
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, balanceResult));
 
 		log.RequestId().info("balance(%s)=%o", req.query.address, balanceResult);
 	} catch (e) {
@@ -150,10 +152,11 @@ export async function observer(req, res) {
 		}
 
 		const balanceResult = await core.Observer(req.params.address);
+		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, balanceResult);
 
-		res.send(balanceResult);
+		res.send(rsp);
 
-		Cache.CacheBalanceObserver.set(req.params.address, balanceResult);
+		Cache.CacheBalanceObserver.set(req.params.address, rsp);
 	} catch (e) {
 		return MyResponse.Error(res, e);
 	}
@@ -177,9 +180,9 @@ export async function transfer(req, res) {
 	try {
 		const receipt = await core.Transfer(req.body.from, req.body.to, req.body.amount, req.body.pk);
 
-		res.send({
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
 			"txHash": receipt.transactionHash,
-		});
+		}));
 
 		log.RequestId().info("txHash=", receipt.transactionHash);
 	} catch (e) {
@@ -208,21 +211,19 @@ export async function verifySignature(req, res) {
 		// Build compose key
 		const composeKey = req.body.address + req.body.msg + req.body.sig;
 		if (cache.has(composeKey)) {
-			const result = cache.get(composeKey);
-			res.send({
-				"verified": result,
-			});
+			res.send(cache.get(composeKey));
 			return;
 		}
 
 		const result = await core.VerifySig(req.body.address, req.body.msg, req.body.sig);
-
-		res.send({
+		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
 			"verified": result,
 		});
 
+		res.send(rsp);
+
 		// Update cache
-		cache.set(composeKey, result);
+		cache.set(composeKey, rsp);
 	} catch (e) {
 		return MyResponse.Error(res, e);
 	}
@@ -244,21 +245,19 @@ export async function verifyAddress(req, res) {
 
 		// Check cache
 		if (cache.has(req.params.address)) {
-			const result = cache.get(req.params.address);
-			res.send({
-				"verified": result,
-			});
+			res.send(cache.get(req.params.address));
 			return;
 		}
 
 		const result = core.VerifyAddress(req.params.address);
-
-		res.send({
+		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
 			"verified": result,
 		});
 
+		res.send(rsp);
+
 		// Update cache
-		cache.set(req.params.address, result);
+		cache.set(req.params.address, rsp);
 	} catch (e) {
 		return MyResponse.Error(res, e);
 	}
