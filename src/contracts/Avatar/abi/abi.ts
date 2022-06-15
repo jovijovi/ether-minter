@@ -38,7 +38,7 @@ export async function EstimateGasOfTransferNFT(address: string, from: string, to
 }
 
 // Mint
-export async function MintForCreator(address: string, to: string, contentHash: any, reqId?: string): Promise<any> {
+export async function MintForCreator(address: string, to: string, contentHash: string | string[], reqId?: string): Promise<any> {
 	if (typeof contentHash === 'string') {
 		// Single mint (for compatible)
 		return await mintForCreator(address, to, [contentHash], MintQuantity, reqId);
