@@ -11,6 +11,7 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 - Mint NFT by random minter
 - Gas price circuit breaker
 - Batch mint NFTs
+- API authorization via 2FA token
 - RESTFul APIs for the Ethereum ecosystem
 - Microservice run in Docker
 
