@@ -15,6 +15,7 @@ function v3APIs(router: core.Express) {
 	router.post('/api/v3/contracts/batch/mint', API.MintTo);
 	router.post('/api/v3/contracts/batch/transfer', API.BatchTransfer);
 	router.post('/api/v3/contracts/batch/transfer2n', API.BatchTransferToN);
+	router.post('/api/v3/contracts/batch/burn', API.BatchBurn);
 	router.get('/api/v3/contracts/mintStatus', API.GetMintStatus);
 	router.get('/api/v3/contracts/tokenIdByContentHash', API.GetTokenIdByContentHash);
 	router.get('/api/v3/contracts/info', API.GetContractInfo);

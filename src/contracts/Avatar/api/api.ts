@@ -449,3 +449,41 @@ export async function BatchTransferToN(req, res) {
 
 	return;
 }
+
+// Batch burn
+export async function BatchBurn(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.pk ||
+		!req.body.fromTokenId ||
+		!req.body.toTokenId
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.BatchBurn(
+			req.body.contractAddress,
+			req.body.fromTokenId,
+			req.body.toTokenId,
+			req.body.pk,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("BatchBurn failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
