@@ -368,7 +368,7 @@ export async function BalanceOf(address: string, owner: string) {
 }
 
 // Batch tokens transfer from 1 to 1
-async function BatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
+export async function BatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
 	const contract = GetContract(address, pk);
@@ -415,7 +415,7 @@ async function BatchTransfer(address: string, from: string, to: string, fromToke
 }
 
 // Batch tokens transfer from 1 to N
-async function BatchTransferToN(address: string, from: string, to: string[], tokenIds: string[], pk: string, reqId?: string): Promise<any> {
+export async function BatchTransferToN(address: string, from: string, to: string[], tokenIds: string[], pk: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
 	const contract = GetContract(address, pk);
@@ -462,7 +462,7 @@ async function BatchTransferToN(address: string, from: string, to: string[], tok
 }
 
 // Batch tokens burn
-async function BatchBurn(address: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
+export async function BatchBurn(address: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
 	const contract = GetContract(address, pk);
