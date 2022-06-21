@@ -37,6 +37,55 @@ export async function EstimateGasOfTransferNFT(address: string, from: string, to
 	return utils.formatEther(gas.mul(price));
 }
 
+// Mint to
+export async function MintTo(address: string, to: string, quantity: number, reqId?: string): Promise<any> {
+	// Step 1. Get minter
+	const provider = network.MyProvider.Get();
+	const minter = GetMinter(customConfig.GetMint().randomMinter);
+	const pk = await keystore.InspectKeystorePK(minter.address, KeystoreTypeMinter, minter.keyStoreSK);
+	const contract = GetContract(address, pk);
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("MintTo request terminated due to high gas price. ContractAddress=%s, ToAddress=%s, Quantity=%d, Minter=%s, GasPrice=%sGwei",
+			address, to, quantity, minter.address, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "MintTo request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.mintTo(to, quantity);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("MintTo... ContractAddress=%s, ToAddress=%s, Quantity=%d, Minter=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, to, quantity, minter.address, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. Mint
+	const tx = await contract.mintTo(to, quantity, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("MintTo tx committed. ContractAddress=%s, ToAddress=%s, Quantity=%d, Minter=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, to, quantity, minter.address, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "MintTo tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
+
 // Mint
 export async function MintForCreator(address: string, to: string, contentHash: string | string[], reqId?: string): Promise<any> {
 	if (typeof contentHash === 'string') {
