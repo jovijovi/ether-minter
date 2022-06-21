@@ -466,7 +466,7 @@ export async function BatchBurn(address: string, fromTokenId: string, toTokenId:
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
 	const contract = GetContract(address, pk);
-	const owner = utils.computeAddress(pk);
+	const owner = core.GetWallet(pk).address;
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
