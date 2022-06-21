@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Avatar Contract v0.2.2
+// Avatar Contract v0.3.0
 pragma solidity ^0.8.4;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
@@ -121,18 +121,6 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
-     * @notice Burn a token.
-     * @dev Only callable if the avatar owner is also the creator.
-     */
-    function burn(uint256 tokenId) public
-    nonReentrant
-    onlyExistingToken(tokenId)
-    onlyApprovedOrOwner(_msgSender(), tokenId)
-    {
-        _burn(tokenId);
-    }
-
-    /**
      * @dev Returns whether `tokenId` exists.
      */
     function exists(uint256 tokenId) public view returns (bool) {
@@ -232,6 +220,44 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
+     * @dev Batch tokens transfer from 1 to 1.
+     */
+    function batchTransfer(address from, address to, uint256 fromTokenId, uint256 toTokenId) external
+    nonReentrant
+    {
+        _batchTransfer(from, to, fromTokenId, toTokenId);
+    }
+
+    /**
+     * @dev Batch tokens transfer from 1 to N.
+     */
+    function batchTransferToN(address from, address[] memory to, uint256[] memory tokenIds) external
+    nonReentrant
+    {
+        _batchTransferToN(from, to, tokenIds);
+    }
+
+    /**
+     * @dev Burn a token.
+     */
+    function burn(uint256 tokenId) external
+    nonReentrant
+    onlyExistingToken(tokenId)
+    onlyApprovedOrOwner(_msgSender(), tokenId)
+    {
+        _burn(tokenId);
+    }
+
+    /**
+     * @dev Batch tokens burn.
+     */
+    function batchBurn(uint256 fromTokenId, uint256 toTokenId) external
+    nonReentrant
+    {
+        _batchBurn(fromTokenId, toTokenId);
+    }
+
+    /**
      * @notice Finalize this contract and can not mint any more.
      */
     function finalize() external
@@ -326,5 +352,35 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     onlyExistingToken(tokenId)
     {
         tokenContentHashes[tokenId] = contentHash;
+    }
+
+    /**
+     * @dev Batch tokens transfer from 1 to 1.
+     */
+    function _batchTransfer(address from, address to, uint256 fromTokenId, uint256 toTokenId) internal virtual {
+        require(toTokenId > fromTokenId, "Avatar: invalid tokenId");
+        for (uint256 tokenId = fromTokenId; tokenId <= toTokenId; tokenId++) {
+            safeTransferFrom(from, to, tokenId);
+        }
+    }
+
+    /**
+     * @dev Batch tokens transfer from 1 to N.
+     */
+    function _batchTransferToN(address from, address[] memory to, uint256[] memory tokenIds) internal virtual {
+        require(to.length == tokenIds.length, "Avatar: invalid length of tokenIds");
+        for (uint256 i = 0; i < to.length; i++) {
+            safeTransferFrom(from, to[i], tokenIds[i]);
+        }
+    }
+
+    /**
+     * @dev Batch tokens burn.
+     */
+    function _batchBurn(uint256 fromTokenId, uint256 toTokenId) internal virtual {
+        require(toTokenId > fromTokenId, "Avatar: invalid tokenId");
+        for (uint256 tokenId = fromTokenId; tokenId <= toTokenId; tokenId++) {
+            _burn(tokenId, true);
+        }
     }
 }
