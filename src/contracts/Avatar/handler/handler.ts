@@ -11,6 +11,7 @@ function defaultAPIs(router: core.Express) {
 }
 
 function v3APIs(router: core.Express) {
+	router.post('/api/v3/contracts/deploy', API.Deploy);
 	router.post('/api/v3/contracts/mint', API.MintForCreator);
 	router.post('/api/v3/contracts/batch/mint', API.MintTo);
 	router.post('/api/v3/contracts/batch/transfer', API.BatchTransfer);

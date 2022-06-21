@@ -1,6 +1,6 @@
 import {log} from '@jovijovi/pedrojs-common';
 import {KEY} from '@jovijovi/pedrojs-network-http/middleware/requestid';
-import {ABI} from '../abi';
+import {ABI, Deployer} from '../abi';
 import {Cache} from '../../../common/cache';
 import {customConfig} from '../../../config';
 import * as MyResponse from '../../../common/response/response';
@@ -476,6 +476,43 @@ export async function BatchBurn(req, res) {
 		log.RequestId(req[KEY]).info("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("BatchBurn failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
+// Deploy
+export async function Deploy(req, res) {
+	if (!req.body ||
+		!req.body.name ||
+		!req.body.symbol ||
+		!req.body.baseTokenURI
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await Deployer.Deploy(
+			req.body.name,
+			req.body.symbol,
+			req.body.baseTokenURI,
+			req[KEY]);
+
+		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)
+		res.send(rsp);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("Deploy failed, error=", e);
 
 		res.send({
 			code: customConfig.GetMint().apiResponseCode.ERROR,

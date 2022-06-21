@@ -1,3 +1,6 @@
+// Contract name by default
+export const ContractName = 'Avatar';
+
 // Tx status successful
 export const StatusSuccessful = 1;
 
