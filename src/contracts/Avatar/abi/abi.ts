@@ -317,3 +317,145 @@ export async function BalanceOf(address: string, owner: string) {
 		}
 	}
 }
+
+// Batch tokens transfer from 1 to 1
+async function BatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const provider = network.MyProvider.Get();
+	const contract = GetContract(address, pk);
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("BatchTransfer request terminated due to high gas price. ContractAddress=%s, From=%s, To=%s, FromTokenId=%s, ToTokenId=%s, GasPrice=%sGwei",
+			address, from, to, fromTokenId, toTokenId, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "BatchTransfer request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.batchTransfer(from, to, fromTokenId, toTokenId);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("BatchTransferring... ContractAddress=%s, From=%s, To=%s, FromTokenId=%s, ToTokenId=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, from, to, fromTokenId, toTokenId, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. BatchTransfer(1 to 1)
+	const tx = await contract.batchTransfer(from, to, fromTokenId, toTokenId, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("BatchTransfer tx committed. ContractAddress=%s, From=%s, To=%s, FromTokenId=%s, ToTokenId=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, from, to, fromTokenId, toTokenId, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "BatchTransfer tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
+
+// Batch tokens transfer from 1 to N
+async function BatchTransferToN(address: string, from: string, to: string[], tokenIds: string[], pk: string, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const provider = network.MyProvider.Get();
+	const contract = GetContract(address, pk);
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("BatchTransferToN request terminated due to high gas price. ContractAddress=%s, From=%s, To=%o, TokenIds=%o, GasPrice=%sGwei",
+			address, from, to, tokenIds, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "BatchTransferToN request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.batchTransferToN(from, to, tokenIds);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("BatchTransferToN... ContractAddress=%s, From=%s, To=%o, TokenIds=%o, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, from, to, tokenIds, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. BatchTransferToN(1 to N)
+	const tx = await contract.batchTransferToN(from, to, tokenIds, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("BatchTransferToN tx committed. ContractAddress=%s, From=%s, To=%o, TokenIds=%o, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, from, to, tokenIds, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "BatchTransferToN tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
+
+// Batch tokens burn
+async function BatchBurn(address: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const provider = network.MyProvider.Get();
+	const contract = GetContract(address, pk);
+	const owner = utils.computeAddress(pk);
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("BatchBurn request terminated due to high gas price. ContractAddress=%s, Owner=%s, FromTokenId=%s, ToTokenId=%s, GasPrice=%sGwei",
+			address, owner, fromTokenId, toTokenId, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "BatchBurn request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.batchBurn(fromTokenId, toTokenId);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("BatchBurning... ContractAddress=%s, Owner=%s, FromTokenId=%s, ToTokenId=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, owner, fromTokenId, toTokenId, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. BatchBurn
+	const tx = await contract.batchBurn(fromTokenId, toTokenId, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("BatchBurn tx committed. ContractAddress=%s, Owner=%s, FromTokenId=%s, ToTokenId=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, owner, fromTokenId, toTokenId, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "BatchBurn tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
