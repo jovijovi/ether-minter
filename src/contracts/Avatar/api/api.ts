@@ -68,6 +68,38 @@ export async function EstimateGasOfTransferNFT(req, res) {
 	return;
 }
 
+// MintTo returns mint tx
+export async function MintTo(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.toAddress ||
+		!req.body.quantity
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.MintTo(req.body.contractAddress, req.body.toAddress, req.body.quantity, req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("MintTo failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
 // MintForCreator returns mint tx
 export async function MintForCreator(req, res) {
 	if (!req.body ||
@@ -334,4 +366,86 @@ export async function BalanceOf(req, res) {
 
 		return;
 	}
+}
+
+// Batch transfer (1 to 1)
+export async function BatchTransfer(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.pk ||
+		!req.body.fromAddress ||
+		!req.body.toAddress ||
+		!req.body.fromTokenId ||
+		!req.body.toTokenId
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.BatchTransfer(
+			req.body.contractAddress,
+			req.body.fromAddress,
+			req.body.toAddress,
+			req.body.fromTokenId,
+			req.body.toTokenId,
+			req.body.pk,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("BatchTransfer failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
+// Batch transfer (1 to N)
+export async function BatchTransferToN(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.pk ||
+		!req.body.fromAddress ||
+		!req.body.toAddress ||
+		!req.body.tokenIds
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.BatchTransferToN(
+			req.body.contractAddress,
+			req.body.fromAddress,
+			req.body.toAddress,
+			req.body.tokenIds,
+			req.body.pk,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("BatchTransferToN failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
 }
