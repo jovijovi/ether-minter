@@ -1,12 +1,19 @@
 version: '3.1'
 
+networks:
+  devenv-testnet-network:
+
 services:
-  pedrojs:
+  devenv-ether-minter:
     container_name: devenv_ether_minter
     image: ether-minter:latest
     restart: always
     volumes:
       - ../conf:/opt/app/conf
       - ../keystore:/opt/app/keystore
+    environment:
+      DEVELOPER_PK: '1234567890123456789012345678901234567890123456789012345678901234'
     ports:
       - "27550:27550"
+    networks:
+      - devenv-testnet-network
