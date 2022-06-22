@@ -62,7 +62,7 @@ describe("NFT Contract", function () {
 	// Deploy NFT contract
 	it("deploy", async function () {
 		const contractFactory = await ethers.getContractFactory(contractName);
-		const contract = await contractFactory.deploy(nftName, nftSymbol, nftBaseTokenURI);
+		const contract = await contractFactory.deploy(nftName, nftSymbol, nftBaseTokenURI, defaultMaxSupply);
 		contractAddress = contract.address;
 		console.debug("## Contract address=", contractAddress);
 		console.debug("## Contract signer=", await contract.signer.getAddress());
@@ -268,7 +268,7 @@ describe("NFT Contract", function () {
 		const tokenId1 = totalMinted.toNumber();
 		const tokenId2 = totalMinted.toNumber() - 1;
 		const tokenIds = [tokenId1.toString(), tokenId2.toString()];
-		const to = [signer1Address,signer3Address];
+		const to = [signer1Address, signer3Address];
 		const tx = await contract.batchTransferToN(signer2Address, to, tokenIds);
 
 		const receipt = await tx.wait(Confirmations);
@@ -395,6 +395,28 @@ describe("NFT Contract", function () {
 		expect(isOperator).to.equal(false);
 
 		console.debug("## Operator(%s) retired, tx=%s", ownerAddress, receipt.transactionHash);
+	})
+
+	// Add mint operators
+	it("addOperators", async function () {
+		const contract = await attachContract(contractName, contractAddress);
+		let operatorList = await contract.getOperatorList();
+		console.debug("## OperatorList(Before addOperators)=", operatorList);
+
+		const operators = [signer1Address, signer2Address];
+		console.debug("## Adding operators(%s)...", operators);
+		const tx = await contract.addOperators(operators);
+		const receipt = await tx.wait(Confirmations);
+
+		operatorList = await contract.getOperatorList();
+		console.debug("## OperatorList(After addOperators)=", operatorList);
+
+		const isOperator1 = operatorList.includes(signer1Address);
+		expect(isOperator1).to.equal(true);
+		const isOperator2 = operatorList.includes(signer2Address);
+		expect(isOperator2).to.equal(true);
+
+		console.debug("## Add operators(%o) completed, tx=", operators, receipt.transactionHash);
 	})
 
 	// Finalize contract

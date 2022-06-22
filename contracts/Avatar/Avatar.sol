@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Avatar Contract v0.3.2
+// Avatar Contract v0.3.3
 pragma solidity ^0.8.4;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
