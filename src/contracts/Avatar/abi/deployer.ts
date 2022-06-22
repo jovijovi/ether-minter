@@ -10,7 +10,7 @@ import {GasPriceCircuitBreaker} from './breaker';
 import {customConfig} from '../../../config';
 
 // Deploy contract
-export async function Deploy(name: string, symbol: string, baseTokenURI: string, reqId?: string): Promise<any> {
+export async function Deploy(name: string, symbol: string, baseTokenURI: string, isWait = true, reqId?: string): Promise<any> {
 	// Step 1. Get provider
 	const provider = network.MyProvider.Get();
 
@@ -31,16 +31,21 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 	// Step 3. Deploy
 	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(env.DEVELOPER_PK)) as Avatar__factory;
 	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI);
-	const tx = await contract.deployTransaction.wait();
 
-	log.RequestId(reqId).warn("Contract(%s) deployed. Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
-		contract.address, name, symbol, baseTokenURI, utils.formatUnits(gasPrice, "gwei"));
+	if (isWait) {
+		await contract.deployTransaction.wait();
+		log.RequestId(reqId).info("Contract(%s) deployed. Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
+			contract.address, name, symbol, baseTokenURI, utils.formatUnits(gasPrice, "gwei"));
+	} else {
+		log.RequestId(reqId).info("Deploy contract(%s) tx committed. Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
+			contract.address, name, symbol, baseTokenURI, utils.formatUnits(gasPrice, "gwei"));
+	}
 
 	return {
 		name: name,
 		symbol: symbol,
 		baseTokenURI: baseTokenURI,
 		address: contract.address,
-		txHash: tx.transactionHash,
+		txHash: contract.deployTransaction.hash,
 	}
 }

@@ -505,6 +505,7 @@ export async function Deploy(req, res) {
 			req.body.name,
 			req.body.symbol,
 			req.body.baseTokenURI,
+			req.body.sync, // true: sync; false: async
 			req[KEY]);
 
 		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)
