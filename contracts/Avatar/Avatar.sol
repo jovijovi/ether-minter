@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Avatar Contract v0.3.0
+// Avatar Contract v0.3.1
 pragma solidity ^0.8.4;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
@@ -125,6 +125,20 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
      */
     function exists(uint256 tokenId) public view returns (bool) {
         return _exists(tokenId);
+    }
+
+    /**
+     * @dev Returns the total amount of tokens minted in the contract.
+     */
+    function totalMinted() public view returns (uint256) {
+        return _totalMinted();
+    }
+
+    /**
+     * @dev Returns the total number of tokens burned.
+     */
+    function totalBurned() public view returns (uint256) {
+        return _totalBurned();
     }
 
     /**
