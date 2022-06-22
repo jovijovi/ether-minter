@@ -1,6 +1,6 @@
 {
   "name": "ether-minter",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "An NFT minter microservice",
   "author": "jovijovi <mageyul@hotmail.com>",
   "license": "MIT",
