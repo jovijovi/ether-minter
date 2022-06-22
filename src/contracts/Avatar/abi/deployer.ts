@@ -9,6 +9,20 @@ import {Avatar, Avatar__factory} from '../../../../typechain-types';
 import {GasPriceCircuitBreaker} from './breaker';
 import {customConfig} from '../../../config';
 
+function getOperators(): string[] {
+	// If enable random minter, returns all operators
+	if (customConfig.GetMint().randomMinter) {
+		const operators: string[] = [];
+		for (const minter of customConfig.GetMint().minterList) {
+			operators.push(minter.address);
+		}
+		return operators;
+	}
+
+	// Else returns 1st operator
+	return [customConfig.GetMint().minterList[0].address];
+}
+
 // Deploy contract
 export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, isWait = true, reqId?: string): Promise<any> {
 	// Step 1. Get provider
@@ -29,8 +43,9 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 	}
 
 	// Step 3. Deploy
+	const operators = getOperators();
 	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(env.DEVELOPER_PK)) as Avatar__factory;
-	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply);
+	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply, operators);
 
 	if (isWait) {
 		await contract.deployTransaction.wait();

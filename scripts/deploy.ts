@@ -13,7 +13,7 @@ const params = {
 
 async function main(): Promise<void> {
 	const factory: Avatar__factory = await ethers.getContractFactory("Avatar") as Avatar__factory;
-	const contract: Avatar = await factory.deploy(params.NFTName, params.NFTSymbol, params.NFTBaseTokenURI, params.MaxSupply);
+	const contract: Avatar = await factory.deploy(params.NFTName, params.NFTSymbol, params.NFTBaseTokenURI, params.MaxSupply, []);
 	await contract.deployed();
 	console.log("Contract deployed to: ", contract.address);
 }
