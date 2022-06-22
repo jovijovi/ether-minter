@@ -493,7 +493,8 @@ export async function Deploy(req, res) {
 	if (!req.body ||
 		!req.body.name ||
 		!req.body.symbol ||
-		!req.body.baseTokenURI
+		!req.body.baseTokenURI ||
+		!req.body.maxSupply
 	) {
 		return MyResponse.BadRequest(res);
 	}
@@ -505,6 +506,7 @@ export async function Deploy(req, res) {
 			req.body.name,
 			req.body.symbol,
 			req.body.baseTokenURI,
+			req.body.maxSupply,
 			req.body.sync, // true: sync; false: async
 			req[KEY]);
 

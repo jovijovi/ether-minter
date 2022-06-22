@@ -10,7 +10,7 @@ import {GasPriceCircuitBreaker} from './breaker';
 import {customConfig} from '../../../config';
 
 // Deploy contract
-export async function Deploy(name: string, symbol: string, baseTokenURI: string, isWait = true, reqId?: string): Promise<any> {
+export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, isWait = true, reqId?: string): Promise<any> {
 	// Step 1. Get provider
 	const provider = network.MyProvider.Get();
 
@@ -30,7 +30,7 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 
 	// Step 3. Deploy
 	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(env.DEVELOPER_PK)) as Avatar__factory;
-	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI);
+	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply);
 
 	if (isWait) {
 		await contract.deployTransaction.wait();
