@@ -23,11 +23,11 @@ describe("NFT Contract", function () {
 
 	let contractAddress: string;
 
-	let owner: Signer, signer1: Signer, signer2: Signer;
-	let ownerAddress: string, signer1Address: string, signer2Address: string;
+	let owner: Signer, signer1: Signer, signer2: Signer, signer3: Signer;
+	let ownerAddress: string, signer1Address: string, signer2Address: string, signer3Address;
 
 	async function getAccounts() {
-		[owner, signer1, signer2] = await ethers.getSigners();
+		[owner, signer1, signer2, signer3] = await ethers.getSigners();
 
 		ownerAddress = await owner.getAddress();
 		console.debug("## ContractOwner=", ownerAddress);
@@ -37,6 +37,9 @@ describe("NFT Contract", function () {
 
 		signer2Address = await signer2.getAddress();
 		console.debug("## Address2=", signer2Address);
+
+		signer3Address = await signer3.getAddress();
+		console.debug("## Address3=", signer3Address);
 	}
 
 	async function attachContract(name: string, address: string): Promise<Avatar> {
@@ -229,6 +232,72 @@ describe("NFT Contract", function () {
 		expect(maxSupply2.toNumber()).to.equal(defaultMaxSupply);
 		console.debug("## Restore to default max supply(%d), tx=%s", defaultMaxSupply, receipt2.transactionHash);
 	})
+
+	// BatchTransfer from signer1Address to signer2Address
+	it("BatchTransfer", async function () {
+		// Mint 10 NFTs to signer1Address
+		const contract = await attachContract(contractName, contractAddress);
+		const totalMinted = await contract.totalMinted();
+		const tx = await contract.mintTo(signer1Address, 5);
+		const receipt = await tx.wait(Confirmations);
+
+		expect(receipt.status).to.equal(StatusSuccessful);
+		console.debug("## MintTo %s completed, tx=", signer1Address, receipt.transactionHash);
+
+		// BatchTransfer 10 NFTs from signer1Address to signer2Address
+		const fromTokenId = totalMinted.toNumber() + 1;
+		const toTokenId = totalMinted.toNumber() + 5;
+		const contract2 = await connectContract(await signer1.getAddress());
+		const tx2 = await contract2.batchTransfer(signer1Address, signer2Address, fromTokenId, toTokenId);
+
+		const receipt2 = await tx2.wait(Confirmations);
+		expect(receipt2.status).to.equal(StatusSuccessful);
+
+		const owner1 = await contract2.ownerOf(fromTokenId);
+		const owner2 = await contract2.ownerOf(toTokenId);
+		expect(owner1).to.equal(signer2Address);
+		expect(owner2).to.equal(signer2Address);
+
+		console.debug("## BatchTransfer from %s to %s completed, tx=", signer1Address, signer2Address, receipt2.transactionHash);
+	});
+
+	// BatchTransferToN from signer2Address to [signer1Address,signer3Address]
+	it("BatchTransferToN", async function () {
+		const contract = await connectContract(await signer2.getAddress());
+		const totalMinted = await contract.totalMinted();
+		const tokenId1 = totalMinted.toNumber();
+		const tokenId2 = totalMinted.toNumber() - 1;
+		const tokenIds = [tokenId1.toString(), tokenId2.toString()];
+		const to = [signer1Address,signer3Address];
+		const tx = await contract.batchTransferToN(signer2Address, to, tokenIds);
+
+		const receipt = await tx.wait(Confirmations);
+		expect(receipt.status).to.equal(StatusSuccessful);
+
+		const owner1 = await contract.ownerOf(tokenId1);
+		const owner2 = await contract.ownerOf(tokenId2);
+		expect(owner1).to.equal(signer1Address);
+		expect(owner2).to.equal(signer3Address);
+
+		console.debug("## BatchTransferToN from %s to %o completed, tx=", signer2Address, to, receipt.transactionHash);
+	});
+
+	// BatchBurn
+	it("BatchBurn", async function () {
+		const contract = await connectContract(await signer2.getAddress());
+		const totalMinted = await contract.totalMinted();
+		const toTokenId = totalMinted.toNumber() - 2;
+		const fromTokenId = totalMinted.toNumber() - 3;
+		const tx = await contract.batchBurn(fromTokenId, toTokenId);
+
+		const receipt = await tx.wait(Confirmations);
+		expect(receipt.status).to.equal(StatusSuccessful);
+
+		expect(await contract.exists(fromTokenId)).to.equal(false);
+		expect(await contract.exists(toTokenId)).to.equal(false);
+
+		console.debug("## BatchBurn tokens(from %s to %s) completed, tx=", fromTokenId, toTokenId, receipt.transactionHash);
+	});
 
 	// Set baseTokenURI
 	it("setBaseTokenURI", async function () {
