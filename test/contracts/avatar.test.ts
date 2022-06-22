@@ -62,7 +62,7 @@ describe("NFT Contract", function () {
 	// Deploy NFT contract
 	it("deploy", async function () {
 		const contractFactory = await ethers.getContractFactory(contractName);
-		const contract = await contractFactory.deploy(nftName, nftSymbol, nftBaseTokenURI, defaultMaxSupply);
+		const contract = await contractFactory.deploy(nftName, nftSymbol, nftBaseTokenURI, defaultMaxSupply, []);
 		contractAddress = contract.address;
 		console.debug("## Contract address=", contractAddress);
 		console.debug("## Contract signer=", await contract.signer.getAddress());
