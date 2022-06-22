@@ -39,7 +39,10 @@ export async function getTxReceipt(req, res) {
 		const tx = await core.GetTxResponse(req.query.txHash);
 		receipt.value = tx.value.toString();
 
-		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, receipt));
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
+			status: receipt.status,
+			receipt: receipt,
+		}));
 
 		log.RequestId().info("receipt=", receipt);
 	} catch (e) {
