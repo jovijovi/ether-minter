@@ -37,19 +37,100 @@ export async function EstimateGasOfTransferNFT(address: string, from: string, to
 	return utils.formatEther(gas.mul(price));
 }
 
-// Mint
-export async function MintForCreator(address: string, to: string, contentHash: string, reqId?: string): Promise<any> {
+// Mint to
+export async function MintTo(address: string, to: string, quantity: number, reqId?: string): Promise<any> {
+	// Step 1. Get minter
 	const provider = network.MyProvider.Get();
 	const minter = GetMinter(customConfig.GetMint().randomMinter);
 	const pk = await keystore.InspectKeystorePK(minter.address, KeystoreTypeMinter, minter.keyStoreSK);
 	const contract = GetContract(address, pk);
 
-	// Check if content hash exists
-	if (await contract.contentHashExists(contentHash)) {
-		const tokenId = await contract.getTokenIdByContentHash(contentHash);
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
 
-		log.RequestId(reqId).info("Duplicate contentHash(%s) found. Token(ID=%s) with the same content hash. ContractAddress=%s, ToAddress=%s",
-			contentHash, tokenId.toString(), address, to);
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("MintTo request terminated due to high gas price. ContractAddress=%s, ToAddress=%s, Quantity=%d, Minter=%s, GasPrice=%sGwei",
+			address, to, quantity, minter.address, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "MintTo request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.mintTo(to, quantity);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("MintTo... ContractAddress=%s, ToAddress=%s, Quantity=%d, Minter=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, to, quantity, minter.address, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. Mint
+	const tx = await contract.mintTo(to, quantity, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("MintTo tx committed. ContractAddress=%s, ToAddress=%s, Quantity=%d, Minter=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, to, quantity, minter.address, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "MintTo tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
+
+// Mint
+export async function MintForCreator(address: string, to: string, contentHash: string | string[], reqId?: string): Promise<any> {
+	if (typeof contentHash === 'string') {
+		// Single mint (for compatible)
+		return await mintForCreator(address, to, [contentHash], MintQuantity, reqId);
+	} else if (Array.isArray(contentHash)) {
+		// Batch mint
+		return await mintForCreator(address, to, contentHash, contentHash.length, reqId);
+	}
+
+	throw new Error(`invalid type of contentHash`);
+}
+
+// Mint to the specified address
+async function mintForCreator(address: string, to: string, contentHashList: string[], quantity: number, reqId?: string): Promise<any> {
+	// Step 1. Get minter
+	const provider = network.MyProvider.Get();
+	const minter = GetMinter(customConfig.GetMint().randomMinter);
+	const pk = await keystore.InspectKeystorePK(minter.address, KeystoreTypeMinter, minter.keyStoreSK);
+	const contract = GetContract(address, pk);
+
+	// Step 2. Check if content hash exists
+	const duplicateContentHash: string[] = [];
+	if (contentHashList.length === 1) {
+		if (await contract.contentHashExists(contentHashList[0])) {
+			duplicateContentHash.push(contentHashList[0]);
+		}
+	} else {
+		const allContentHash = await contract.getAllContentHash();
+		for (const contentHash of contentHashList) {
+			if (allContentHash.includes(contentHash)) {
+				duplicateContentHash.push(contentHash);
+			}
+		}
+	}
+
+	if (duplicateContentHash.length > 0) {
+		const duplicateTokenId: number[] = [];
+		for (const contentHash of duplicateContentHash) {
+			const tokenId = await contract.getTokenIdByContentHash(contentHash);
+			duplicateTokenId.push(tokenId.toNumber());
+
+			log.RequestId(reqId).warn("Duplicate contentHash(%s) found, mint request ignored. Token(ID=%s) with the same content hash. ContractAddress=%s, ToAddress=%s",
+				contentHash, tokenId.toString(), address, to);
+		}
 
 		// If content hash exists, return tokenId
 		return {
@@ -57,29 +138,34 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 			msg: "Duplicate contentHash",
 			data: {
 				"status": StatusSuccessful,
-				"tokenId": tokenId.toNumber(),
+				"tokenId": duplicateTokenId,
 			}
 		};
 	}
 
+	// Step 3. Check gas price
 	// Get gas price (Unit: Wei)
 	const gasPrice = await provider.getGasPrice();
 
 	// Check gasPrice by circuit breaker
-	if (GasPriceCircuitBreaker(gasPrice)) {
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("Mint request terminated due to high gas price. ContractAddress=%s, ToAddress=%s, Minter=%s, GasPrice=%sGwei",
+			address, to, minter.address, utils.formatUnits(gasPrice, "gwei"));
 		return {
 			code: customConfig.GetMintRspCode().THRESHOLD,
-			msg: "Gas price circuit breaker",
+			msg: "Mint request terminated due to high gas price",
 		};
 	}
 
-	const estimateGas = await contract.estimateGas.mintForCreator(to, MintQuantity, [contentHash]);
+	// Step 4. Estimate gas
+	const estimateGas = await contract.estimateGas.mintForCreator(to, quantity, contentHashList);
 	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
 
 	log.RequestId(reqId).info("Minting... ContractAddress=%s, ToAddress=%s, Minter=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
 		address, to, minter.address, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
 
-	const tx = await contract.mintForCreator(to, MintQuantity, [contentHash], {
+	// Step 5. Mint
+	const tx = await contract.mintForCreator(to, quantity, contentHashList, {
 		gasPrice: gasPrice,
 		gasLimit: gasLimit,
 	});
@@ -87,6 +173,7 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 	log.RequestId(reqId).info("Mint tx committed. ContractAddress=%s, ToAddress=%s, Minter=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
 		address, to, minter.address, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
 
+	// Step 6. Build response
 	return {
 		code: customConfig.GetMintRspCode().OK,
 		msg: "Mint tx committed",
@@ -278,4 +365,146 @@ export async function BalanceOf(address: string, owner: string) {
 			balance: balance.toNumber(),
 		}
 	}
+}
+
+// Batch tokens transfer from 1 to 1
+export async function BatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const provider = network.MyProvider.Get();
+	const contract = GetContract(address, pk);
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("BatchTransfer request terminated due to high gas price. ContractAddress=%s, From=%s, To=%s, FromTokenId=%s, ToTokenId=%s, GasPrice=%sGwei",
+			address, from, to, fromTokenId, toTokenId, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "BatchTransfer request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.batchTransfer(from, to, fromTokenId, toTokenId);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("BatchTransferring... ContractAddress=%s, From=%s, To=%s, FromTokenId=%s, ToTokenId=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, from, to, fromTokenId, toTokenId, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. BatchTransfer(1 to 1)
+	const tx = await contract.batchTransfer(from, to, fromTokenId, toTokenId, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("BatchTransfer tx committed. ContractAddress=%s, From=%s, To=%s, FromTokenId=%s, ToTokenId=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, from, to, fromTokenId, toTokenId, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "BatchTransfer tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
+
+// Batch tokens transfer from 1 to N
+export async function BatchTransferToN(address: string, from: string, to: string[], tokenIds: string[], pk: string, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const provider = network.MyProvider.Get();
+	const contract = GetContract(address, pk);
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("BatchTransferToN request terminated due to high gas price. ContractAddress=%s, From=%s, To=%o, TokenIds=%o, GasPrice=%sGwei",
+			address, from, to, tokenIds, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "BatchTransferToN request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.batchTransferToN(from, to, tokenIds);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("BatchTransferToN... ContractAddress=%s, From=%s, To=%o, TokenIds=%o, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, from, to, tokenIds, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. BatchTransferToN(1 to N)
+	const tx = await contract.batchTransferToN(from, to, tokenIds, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("BatchTransferToN tx committed. ContractAddress=%s, From=%s, To=%o, TokenIds=%o, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, from, to, tokenIds, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "BatchTransferToN tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
+
+// Batch tokens burn
+export async function BatchBurn(address: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const provider = network.MyProvider.Get();
+	const contract = GetContract(address, pk);
+	const owner = core.GetWallet(pk).address;
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("BatchBurn request terminated due to high gas price. ContractAddress=%s, Owner=%s, FromTokenId=%s, ToTokenId=%s, GasPrice=%sGwei",
+			address, owner, fromTokenId, toTokenId, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "BatchBurn request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.batchBurn(fromTokenId, toTokenId);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("BatchBurning... ContractAddress=%s, Owner=%s, FromTokenId=%s, ToTokenId=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, owner, fromTokenId, toTokenId, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. BatchBurn
+	const tx = await contract.batchBurn(fromTokenId, toTokenId, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("BatchBurn tx committed. ContractAddress=%s, Owner=%s, FromTokenId=%s, ToTokenId=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, owner, fromTokenId, toTokenId, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "BatchBurn tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
 }

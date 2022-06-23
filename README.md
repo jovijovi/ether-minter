@@ -6,10 +6,13 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
 ## Features
 
-- NFT Minter APIs
 - [Avatar NFT contract](./contracts/Avatar)
-- Mint NFT by random minter
-- Gas price circuit breaker
+- NFT Minter APIs
+  - Mint NFT by random minter
+  - Gas price circuit breaker
+  - Batch mint/transfer/burn NFTs
+  - Deploy contract by API
+- API authorization via 2FA token
 - RESTFul APIs for the Ethereum ecosystem
 - Microservice run in Docker
 
@@ -20,15 +23,15 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
 ## Development Environment
 
-- typescript `4.7.3`
+- typescript `4.7.4`
 - node `v16.15.1`
 - ts-node `v10.8.1`
-- yarn `v1.22.18`
+- yarn `v1.22.19`
 
 ## Contract Dependencies
 
 - @openzeppelin/contracts: [`4.6.0`](https://www.npmjs.com/package/@openzeppelin/contracts/v/4.6.0)
-- erc721a: [`4.0.0`](https://www.npmjs.com/package/erc721a/v/4.0.0)
+- erc721a: [`4.1.0`](https://www.npmjs.com/package/erc721a/v/4.1.0)
 
 ## Quick Guide
 
@@ -50,6 +53,12 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
   ```shell
   make docker
+  ```
+
+- Test
+
+  ```shell
+  yarn test
   ```
 
 - Run

@@ -1,9 +1,9 @@
 import {log} from '@jovijovi/pedrojs-common';
-import {response as MyResponse} from '@jovijovi/pedrojs-network-http/server';
-import {ABI} from '../abi';
+import {KEY} from '@jovijovi/pedrojs-network-http/middleware/requestid';
+import {ABI, Deployer} from '../abi';
 import {Cache} from '../../../common/cache';
 import {customConfig} from '../../../config';
-import {KEY} from '@jovijovi/pedrojs-network-http/middleware/requestid';
+import * as MyResponse from '../../../common/response/response';
 
 // Get total supply
 export async function GetGetTotalSupply(req, res) {
@@ -54,13 +54,47 @@ export async function EstimateGasOfTransferNFT(req, res) {
 		const result = {
 			gasFee: await ABI.EstimateGasOfTransferNFT(req.body.address, req.body.from, req.body.to, req.body.tokenId)
 		};
-		res.send(result);
+		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)
 
-		Cache.CacheEstimateGasOfTransferNFT.set(key, result);
+		res.send(rsp);
+
+		Cache.CacheEstimateGasOfTransferNFT.set(key, rsp);
 
 		log.RequestId().info("Estimate transfer NFT tx(%o) gasFee=%s", req.body, result.gasFee);
 	} catch (e) {
 		return MyResponse.Error(res, e);
+	}
+
+	return;
+}
+
+// MintTo returns mint tx
+export async function MintTo(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.toAddress ||
+		!req.body.quantity
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.MintTo(req.body.contractAddress, req.body.toAddress, req.body.quantity, req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("MintTo failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
 	}
 
 	return;
@@ -332,4 +366,164 @@ export async function BalanceOf(req, res) {
 
 		return;
 	}
+}
+
+// Batch transfer (1 to 1)
+export async function BatchTransfer(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.pk ||
+		!req.body.fromAddress ||
+		!req.body.toAddress ||
+		!req.body.fromTokenId ||
+		!req.body.toTokenId
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.BatchTransfer(
+			req.body.contractAddress,
+			req.body.fromAddress,
+			req.body.toAddress,
+			req.body.fromTokenId,
+			req.body.toTokenId,
+			req.body.pk,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("BatchTransfer failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
+// Batch transfer (1 to N)
+export async function BatchTransferToN(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.pk ||
+		!req.body.fromAddress ||
+		!req.body.toAddress ||
+		!req.body.tokenIds
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.BatchTransferToN(
+			req.body.contractAddress,
+			req.body.fromAddress,
+			req.body.toAddress,
+			req.body.tokenIds,
+			req.body.pk,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("BatchTransferToN failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
+// Batch burn
+export async function BatchBurn(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.pk ||
+		!req.body.fromTokenId ||
+		!req.body.toTokenId
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.BatchBurn(
+			req.body.contractAddress,
+			req.body.fromTokenId,
+			req.body.toTokenId,
+			req.body.pk,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("BatchBurn failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
+// Deploy
+export async function Deploy(req, res) {
+	if (!req.body ||
+		!req.body.name ||
+		!req.body.symbol ||
+		!req.body.baseTokenURI ||
+		!req.body.maxSupply
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await Deployer.Deploy(
+			req.body.name,
+			req.body.symbol,
+			req.body.baseTokenURI,
+			req.body.maxSupply,
+			req.body.sync, // true: sync; false: async
+			req[KEY]);
+
+		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)
+		res.send(rsp);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("Deploy failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
 }

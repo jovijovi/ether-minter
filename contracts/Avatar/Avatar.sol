@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Avatar Contract v0.2.1
+// Avatar Contract v0.3.4
 pragma solidity ^0.8.4;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
@@ -12,27 +12,41 @@ import "./Permission.sol";
  * @title An avatar NFT contract.
  */
 contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl {
-
     /* *******
      * Globals
      * *******
      */
 
-    // Maximum supply
+    /**
+     * @dev Maximum supply.
+     */
     uint256 public maxSupply = 1000;
 
-    // Finalization state, only false can permit mint
+    /**
+     * @dev Finalization state, only false can permit mint.
+     */
     bool public finalization = false;
 
+    /**
+     * @dev A URL for the storefront-level metadata for contract.
+     */
     string private _contractURI;
+
+    /**
+     * @dev Base URI for computing {tokenURI}.
+     */
     string private _baseTokenURI;
 
-    // Mapping from token id to sha256 hash of content
-    // (tokenId <-> avatar content hash)
+    /**
+     * @dev Mapping from token id to sha256 hash of content.
+     * (tokenId <-> avatar content hash)
+     */
     mapping(uint256 => bytes32) public tokenContentHashes;
 
-    // Mapping from contentHash to tokenID
-    // (avatar content hash <-> tokenId)
+    /**
+     * @dev Mapping from contentHash to tokenID.
+     * (avatar content hash <-> tokenId)
+     */
     mapping(bytes32 => uint256) private _contentHashes;
 
     /* *********
@@ -87,10 +101,16 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
     }
 
     /**
-     * @notice On deployment, set the avatar name, symbol and baseTokenURI
+     * @dev Initializes the contract by setting `name`, `symbol`, `baseTokenURI`, `maxSupply` and `operators` to the token collection.
+     * `operators` is optional.
      */
-    constructor(string memory _name, string memory _symbol, string memory _uri) ERC721A(_name, _symbol) {
-        _baseTokenURI = _uri;
+    constructor(string memory name_, string memory symbol_, string memory baseTokenURI_, uint256 maxSupply_, address[] memory operators) ERC721A(name_, symbol_) {
+        require(maxSupply_ > 0, "Avatar: invalid maxSupply");
+        _baseTokenURI = baseTokenURI_;
+        maxSupply = maxSupply_;
+        if (operators.length > 0) {
+            addOperators(operators);
+        }
     }
 
     /* ****************
@@ -98,25 +118,33 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
      * ****************
      */
 
-    //https://docs.opensea.io/docs/contract-level-metadata
+    /**
+     * @notice A URL for the storefront-level metadata for contract.
+     * @dev Ref: https://docs.opensea.io/docs/contract-level-metadata
+     */
     function contractURI() public view returns (string memory) {
         return _contractURI;
     }
 
     /**
-     * @notice Burn a token.
-     * @dev Only callable if the avatar owner is also the creator.
+     * @dev Returns whether `tokenId` exists.
      */
-    function burn(uint256 tokenId) public
-    nonReentrant
-    onlyExistingToken(tokenId)
-    onlyApprovedOrOwner(_msgSender(), tokenId)
-    {
-        _burn(tokenId);
-    }
-
     function exists(uint256 tokenId) public view returns (bool) {
         return _exists(tokenId);
+    }
+
+    /**
+     * @dev Returns the total amount of tokens minted in the contract.
+     */
+    function totalMinted() public view returns (uint256) {
+        return _totalMinted();
+    }
+
+    /**
+     * @dev Returns the total number of tokens burned.
+     */
+    function totalBurned() public view returns (uint256) {
+        return _totalBurned();
     }
 
     /**
@@ -137,45 +165,116 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         return _contentHashes[contentHash] > 0;
     }
 
-    /* ****************
+    /**
+     * @dev Returns all content hash.
+     */
+    function getAllContentHash() public view returns (bytes32[] memory)
+    {
+        uint256 length = _nextTokenId() - 1 >= 0 ? _nextTokenId() - 1 : 0;
+        bytes32[] memory allContentHash = new bytes32[](length);
+
+        for (uint256 i = _startTokenId(); i <= length; i++) {
+            allContentHash[i - 1] = tokenContentHashes[i];
+        }
+
+        return allContentHash;
+    }
+
+    /* ******************
      * External Functions
-     * ****************
+     * ******************
      */
 
-    function changeContractURI(string memory _uri) external
+    /**
+     * @dev Change contractURI.
+     */
+    function changeContractURI(string memory contractURI_) external
     onlyOwner
     {
-        _contractURI = _uri;
+        _contractURI = contractURI_;
     }
 
-    function setBaseTokenURI(string memory _uri) external
+    /**
+     * @dev Set baseTokenURI.
+     */
+    function setBaseTokenURI(string memory baseTokenURI_) external
     onlyOwner
     {
-        _baseTokenURI = _uri;
+        _baseTokenURI = baseTokenURI_;
     }
 
-    function setMaxSupply(uint256 _val) external
+    /**
+     * @dev Set max supply.
+     */
+    function setMaxSupply(uint256 val) external
     onlyOwner
     {
-        maxSupply = _val;
+        maxSupply = val;
     }
 
+    /**
+     * @dev Mint to message sender.
+     */
     function mint(uint256 quantity) external
     nonReentrant
     {
         _mintTo(_msgSender(), quantity);
     }
 
+    /**
+     * @dev Mint to specified address.
+     */
     function mintTo(address to, uint256 quantity) external
     nonReentrant
     {
         _mintTo(to, quantity);
     }
 
+    /**
+     * @dev Mint to specified address with content hash list.
+     */
     function mintForCreator(address to, uint256 quantity, bytes32[] memory contentHashList) external
     nonReentrant
     {
         _mintForCreator(to, quantity, contentHashList);
+    }
+
+    /**
+     * @dev Batch tokens transfer from 1 to 1.
+     */
+    function batchTransfer(address from, address to, uint256 fromTokenId, uint256 toTokenId) external
+    nonReentrant
+    {
+        _batchTransfer(from, to, fromTokenId, toTokenId);
+    }
+
+    /**
+     * @dev Batch tokens transfer from 1 to N.
+     */
+    function batchTransferToN(address from, address[] memory to, uint256[] memory tokenIds) external
+    nonReentrant
+    {
+        _batchTransferToN(from, to, tokenIds);
+    }
+
+    /**
+     * @dev Burn a token.
+     */
+    function burn(uint256 tokenId) external
+    nonReentrant
+    onlyExistingToken(tokenId)
+    onlyApprovedOrOwner(_msgSender(), tokenId)
+    {
+        _burn(tokenId);
+    }
+
+    /**
+     * @dev Batch tokens burn.
+     */
+    function batchBurn(uint256 fromTokenId, uint256 toTokenId) external
+    nonReentrant
+    {
+        _batchBurn(fromTokenId, toTokenId);
     }
 
     /**
@@ -188,9 +287,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         finalization = true;
     }
 
-    /* *****************
-     * Private Functions
-     * *****************
+    /* ******************
+     * Internal Functions
+     * ******************
      */
 
     /**
@@ -214,6 +313,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         _safeMint(to, quantity);
     }
 
+    /**
+     * @dev Mint to specified address with content hash list.
+     */
     function _mintForCreator(address to, uint256 quantity, bytes32[] memory contentHashList) internal
     onlyMintAvailable
     onlyOperator
@@ -234,11 +336,9 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         }
     }
 
-    /* *****************
-     * Internal Functions
-     * *****************
+    /**
+     * @dev Returns the starting token ID.
      */
-
     function _startTokenId() internal view override virtual returns (uint256) {
         return 1;
     }
@@ -265,9 +365,42 @@ contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl
         return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
     }
 
+    /**
+     * @dev Set token content hash.
+     */
     function _setTokenContentHash(uint256 tokenId, bytes32 contentHash) internal virtual
     onlyExistingToken(tokenId)
     {
         tokenContentHashes[tokenId] = contentHash;
+    }
+
+    /**
+     * @dev Batch tokens transfer from 1 to 1.
+     */
+    function _batchTransfer(address from, address to, uint256 fromTokenId, uint256 toTokenId) internal virtual {
+        require(toTokenId > fromTokenId, "Avatar: invalid tokenId");
+        for (uint256 tokenId = fromTokenId; tokenId <= toTokenId; tokenId++) {
+            safeTransferFrom(from, to, tokenId);
+        }
+    }
+
+    /**
+     * @dev Batch tokens transfer from 1 to N.
+     */
+    function _batchTransferToN(address from, address[] memory to, uint256[] memory tokenIds) internal virtual {
+        require(to.length == tokenIds.length, "Avatar: invalid length of tokenIds");
+        for (uint256 i = 0; i < to.length; i++) {
+            safeTransferFrom(from, to[i], tokenIds[i]);
+        }
+    }
+
+    /**
+     * @dev Batch tokens burn.
+     */
+    function _batchBurn(uint256 fromTokenId, uint256 toTokenId) internal virtual {
+        require(toTokenId > fromTokenId, "Avatar: invalid tokenId");
+        for (uint256 tokenId = fromTokenId; tokenId <= toTokenId; tokenId++) {
+            _burn(tokenId, true);
+        }
     }
 }

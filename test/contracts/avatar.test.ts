@@ -23,11 +23,11 @@ describe("NFT Contract", function () {
 
 	let contractAddress: string;
 
-	let owner: Signer, signer1: Signer, signer2: Signer;
-	let ownerAddress: string, signer1Address: string, signer2Address: string;
+	let owner: Signer, signer1: Signer, signer2: Signer, signer3: Signer;
+	let ownerAddress: string, signer1Address: string, signer2Address: string, signer3Address;
 
 	async function getAccounts() {
-		[owner, signer1, signer2] = await ethers.getSigners();
+		[owner, signer1, signer2, signer3] = await ethers.getSigners();
 
 		ownerAddress = await owner.getAddress();
 		console.debug("## ContractOwner=", ownerAddress);
@@ -37,6 +37,9 @@ describe("NFT Contract", function () {
 
 		signer2Address = await signer2.getAddress();
 		console.debug("## Address2=", signer2Address);
+
+		signer3Address = await signer3.getAddress();
+		console.debug("## Address3=", signer3Address);
 	}
 
 	async function attachContract(name: string, address: string): Promise<Avatar> {
@@ -59,7 +62,7 @@ describe("NFT Contract", function () {
 	// Deploy NFT contract
 	it("deploy", async function () {
 		const contractFactory = await ethers.getContractFactory(contractName);
-		const contract = await contractFactory.deploy(nftName, nftSymbol, nftBaseTokenURI);
+		const contract = await contractFactory.deploy(nftName, nftSymbol, nftBaseTokenURI, defaultMaxSupply, []);
 		contractAddress = contract.address;
 		console.debug("## Contract address=", contractAddress);
 		console.debug("## Contract signer=", await contract.signer.getAddress());
@@ -82,6 +85,14 @@ describe("NFT Contract", function () {
 		expect(symbol).to.equal(nftSymbol);
 	})
 
+	// Get all contentHash before minting
+	it("getAllContentHash(before minting)", async function () {
+		const contract = await attachContract(contractName, contractAddress);
+		const allContentHash = await contract.getAllContentHash();
+		console.debug("## All content hash =", allContentHash);
+		expect(allContentHash.length).to.equal(0);
+	})
+
 	// Mint to signer1
 	it("mintForCreator", async function () {
 		const contract = await attachContract(contractName, contractAddress);
@@ -91,6 +102,14 @@ describe("NFT Contract", function () {
 		expect(receipt.status).to.equal(StatusSuccessful);
 		console.debug("## MintForCreator %s completed, tx=", signer1Address, receipt.transactionHash);
 	});
+
+	// Get all contentHash after minting
+	it("getAllContentHash(after minting)", async function () {
+		const contract = await attachContract(contractName, contractAddress);
+		const allContentHash = await contract.getAllContentHash();
+		console.debug("## All content hash =", allContentHash);
+		expect(allContentHash.length).to.equal(1);
+	})
 
 	// Mint to signer2
 	it("mintTo", async function () {
@@ -214,6 +233,72 @@ describe("NFT Contract", function () {
 		console.debug("## Restore to default max supply(%d), tx=%s", defaultMaxSupply, receipt2.transactionHash);
 	})
 
+	// BatchTransfer from signer1Address to signer2Address
+	it("BatchTransfer", async function () {
+		// Mint 10 NFTs to signer1Address
+		const contract = await attachContract(contractName, contractAddress);
+		const totalMinted = await contract.totalMinted();
+		const tx = await contract.mintTo(signer1Address, 5);
+		const receipt = await tx.wait(Confirmations);
+
+		expect(receipt.status).to.equal(StatusSuccessful);
+		console.debug("## MintTo %s completed, tx=", signer1Address, receipt.transactionHash);
+
+		// BatchTransfer 10 NFTs from signer1Address to signer2Address
+		const fromTokenId = totalMinted.toNumber() + 1;
+		const toTokenId = totalMinted.toNumber() + 5;
+		const contract2 = await connectContract(await signer1.getAddress());
+		const tx2 = await contract2.batchTransfer(signer1Address, signer2Address, fromTokenId, toTokenId);
+
+		const receipt2 = await tx2.wait(Confirmations);
+		expect(receipt2.status).to.equal(StatusSuccessful);
+
+		const owner1 = await contract2.ownerOf(fromTokenId);
+		const owner2 = await contract2.ownerOf(toTokenId);
+		expect(owner1).to.equal(signer2Address);
+		expect(owner2).to.equal(signer2Address);
+
+		console.debug("## BatchTransfer from %s to %s completed, tx=", signer1Address, signer2Address, receipt2.transactionHash);
+	});
+
+	// BatchTransferToN from signer2Address to [signer1Address,signer3Address]
+	it("BatchTransferToN", async function () {
+		const contract = await connectContract(await signer2.getAddress());
+		const totalMinted = await contract.totalMinted();
+		const tokenId1 = totalMinted.toNumber();
+		const tokenId2 = totalMinted.toNumber() - 1;
+		const tokenIds = [tokenId1.toString(), tokenId2.toString()];
+		const to = [signer1Address, signer3Address];
+		const tx = await contract.batchTransferToN(signer2Address, to, tokenIds);
+
+		const receipt = await tx.wait(Confirmations);
+		expect(receipt.status).to.equal(StatusSuccessful);
+
+		const owner1 = await contract.ownerOf(tokenId1);
+		const owner2 = await contract.ownerOf(tokenId2);
+		expect(owner1).to.equal(signer1Address);
+		expect(owner2).to.equal(signer3Address);
+
+		console.debug("## BatchTransferToN from %s to %o completed, tx=", signer2Address, to, receipt.transactionHash);
+	});
+
+	// BatchBurn
+	it("BatchBurn", async function () {
+		const contract = await connectContract(await signer2.getAddress());
+		const totalMinted = await contract.totalMinted();
+		const toTokenId = totalMinted.toNumber() - 2;
+		const fromTokenId = totalMinted.toNumber() - 3;
+		const tx = await contract.batchBurn(fromTokenId, toTokenId);
+
+		const receipt = await tx.wait(Confirmations);
+		expect(receipt.status).to.equal(StatusSuccessful);
+
+		expect(await contract.exists(fromTokenId)).to.equal(false);
+		expect(await contract.exists(toTokenId)).to.equal(false);
+
+		console.debug("## BatchBurn tokens(from %s to %s) completed, tx=", fromTokenId, toTokenId, receipt.transactionHash);
+	});
+
 	// Set baseTokenURI
 	it("setBaseTokenURI", async function () {
 		const contract = await attachContract(contractName, contractAddress);
@@ -310,6 +395,28 @@ describe("NFT Contract", function () {
 		expect(isOperator).to.equal(false);
 
 		console.debug("## Operator(%s) retired, tx=%s", ownerAddress, receipt.transactionHash);
+	})
+
+	// Add mint operators
+	it("addOperators", async function () {
+		const contract = await attachContract(contractName, contractAddress);
+		let operatorList = await contract.getOperatorList();
+		console.debug("## OperatorList(Before addOperators)=", operatorList);
+
+		const operators = [signer1Address, signer2Address];
+		console.debug("## Adding operators(%s)...", operators);
+		const tx = await contract.addOperators(operators);
+		const receipt = await tx.wait(Confirmations);
+
+		operatorList = await contract.getOperatorList();
+		console.debug("## OperatorList(After addOperators)=", operatorList);
+
+		const isOperator1 = operatorList.includes(signer1Address);
+		expect(isOperator1).to.equal(true);
+		const isOperator2 = operatorList.includes(signer2Address);
+		expect(isOperator2).to.equal(true);
+
+		console.debug("## Add operators(%o) completed, tx=", operators, receipt.transactionHash);
 	})
 
 	// Finalize contract
