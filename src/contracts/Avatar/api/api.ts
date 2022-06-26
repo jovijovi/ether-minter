@@ -68,6 +68,86 @@ export async function EstimateGasOfTransferNFT(req, res) {
 	return;
 }
 
+// EstimateGasOfBatchTransfer returns estimateGas of Batch transfer (1 to 1)
+export async function EstimateGasOfBatchTransfer(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.fromAddress ||
+		!req.body.toAddress ||
+		!req.body.fromTokenId ||
+		!req.body.toTokenId
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.EstimateGasOfBatchTransfer(
+			req.body.contractAddress,
+			req.body.fromAddress,
+			req.body.toAddress,
+			req.body.fromTokenId,
+			req.body.toTokenId);
+
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
+			gas: result
+		}));
+
+		log.RequestId(req[KEY]).info("EstimateGasOfBatchTransfer=%sWei", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("EstimateGasOfBatchTransfer failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
+// EstimateGasOfBatchTransferToN Batch transfer (1 to N)
+export async function EstimateGasOfBatchTransferToN(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.fromAddress ||
+		!req.body.toAddress ||
+		!req.body.tokenIds
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.EstimateGasOfBatchTransferN(
+			req.body.contractAddress,
+			req.body.fromAddress,
+			req.body.toAddress,
+			req.body.tokenIds);
+
+		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
+			gas: result
+		}));
+
+		log.RequestId(req[KEY]).info("EstimateGasOfBatchTransferToN=%sWei", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("EstimateGasOfBatchTransferToN failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
 // MintTo returns mint tx
 export async function MintTo(req, res) {
 	if (!req.body ||

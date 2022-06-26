@@ -28,13 +28,31 @@ export async function GetTotalSupply(address: string): Promise<any> {
 	}
 }
 
-// EstimateGasOfTransferNFT returns estimate Gas of transfer NFT tx
+// EstimateGasOfTransferNFT returns estimate Gas of transfer NFT tx. (Uint: Wei)
 export async function EstimateGasOfTransferNFT(address: string, from: string, to: string, tokenId: number): Promise<string> {
 	const provider = network.MyProvider.Get();
 	const contract = GetContract(address);
 	const price = await provider.getGasPrice();
 	const gas = await contract.estimateGas.transferFrom(from, to, tokenId);
-	return utils.formatEther(gas.mul(price));
+	return gas.mul(price).toString();
+}
+
+// EstimateGasOfBatchTransfer returns estimate Gas of BatchTransfer (1 to 1). (Uint: Wei)
+export async function EstimateGasOfBatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string): Promise<string> {
+	const provider = network.MyProvider.Get();
+	const contract = GetContract(address);
+	const price = await provider.getGasPrice();
+	const gas = await contract.estimateGas.batchTransfer(from, to, fromTokenId, toTokenId);
+	return gas.mul(price).toString();
+}
+
+// EstimateGasOfBatchTransferN returns estimate gas of BatchTransferN (1 to N). (Uint: Wei)
+export async function EstimateGasOfBatchTransferN(address: string, from: string, to: string[], tokenIds: string[]): Promise<string> {
+	const provider = network.MyProvider.Get();
+	const contract = GetContract(address);
+	const price = await provider.getGasPrice();
+	const gas = await contract.estimateGas.batchTransferToN(from, to, tokenIds);
+	return gas.mul(price).toString();
 }
 
 // Mint to

@@ -14,6 +14,8 @@ function v3APIs(router: core.Express) {
 	router.post('/api/v3/contracts/deploy', API.Deploy);
 	router.post('/api/v3/contracts/mint', API.MintForCreator);
 	router.post('/api/v3/contracts/batch/mint', API.MintTo);
+	router.post('/api/v3/nft/estimate/batch/transfer', API.EstimateGasOfBatchTransfer);
+	router.post('/api/v3/nft/estimate/batch/transfer2n', API.EstimateGasOfBatchTransferToN);
 	router.post('/api/v3/contracts/batch/transfer', API.BatchTransfer);
 	router.post('/api/v3/contracts/batch/transfer2n', API.BatchTransferToN);
 	router.post('/api/v3/contracts/batch/burn', API.BatchBurn);
