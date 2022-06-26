@@ -1,8 +1,11 @@
+import {BigNumber, utils} from 'ethers';
 import {auditor, log} from '@jovijovi/pedrojs-common';
 import {core} from '@jovijovi/ether-core';
+import {KEY} from '@jovijovi/pedrojs-network-http/middleware/requestid';
 import {Cache} from '../../common/cache';
 import {customConfig} from '../../config';
 import * as MyResponse from '../../common/response/response';
+import {GasPriceCircuitBreaker} from '../../contracts/Avatar/abi/breaker';
 
 // Get gas price
 export async function getGasPrice(req, res) {
@@ -181,7 +184,26 @@ export async function transfer(req, res) {
 	log.RequestId().debug("New request body=", req.body);
 
 	try {
+		auditor.Check(customConfig.GetTxConfig().gasLimitC >= 100, "invalid tx gasLimitC");
 		auditor.Check(customConfig.GetTxConfig().confirmations > 0, "invalid tx confirmations");
+
+		// Check gas price if 'force' is false
+		if (!req.body.force) {
+			// Get gas price (Unit: Wei)
+			const gasPrice = BigNumber.from((await core.GetGasPrice()).price);
+
+			// Check gasPrice by circuit breaker
+			if (GasPriceCircuitBreaker(gasPrice, req[KEY])) {
+				log.RequestId(req[KEY]).warn("Transfer request terminated due to high gas price. From=%s, To=%s, Amount=%s, GasPrice=%sGwei",
+					req.body.from, req.body.to, req.body.amount, utils.formatUnits(gasPrice, "gwei"));
+				return {
+					code: customConfig.GetMintRspCode().THRESHOLD,
+					msg: "Transfer request terminated due to high gas price",
+				};
+			}
+		}
+
+		// Transfer
 		const receipt = await core.Transfer(req.body.from, req.body.to, req.body.amount, req.body.pk,
 			customConfig.GetTxConfig().gasLimitC, customConfig.GetTxConfig().confirmations);
 
