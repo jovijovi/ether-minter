@@ -1,4 +1,4 @@
-import {log} from '@jovijovi/pedrojs-common';
+import {auditor, log} from '@jovijovi/pedrojs-common';
 import {core} from '@jovijovi/ether-core';
 import {Cache} from '../../common/cache';
 import {customConfig} from '../../config';
@@ -181,7 +181,9 @@ export async function transfer(req, res) {
 	log.RequestId().debug("New request body=", req.body);
 
 	try {
-		const receipt = await core.Transfer(req.body.from, req.body.to, req.body.amount, req.body.pk);
+		auditor.Check(customConfig.GetTxConfig().confirmations > 0, "invalid tx confirmations");
+		const receipt = await core.Transfer(req.body.from, req.body.to, req.body.amount, req.body.pk,
+			customConfig.GetTxConfig().gasLimitC, customConfig.GetTxConfig().confirmations);
 
 		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
 			"txHash": receipt.transactionHash,
