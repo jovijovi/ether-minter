@@ -1,6 +1,6 @@
 {
   "name": "ether-minter",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "An NFT minter microservice",
   "author": "jovijovi <mageyul@hotmail.com>",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "compile": "yarn hardhat compile",
     "deploy": "hardhat run ./scripts/deploy.ts --network custom",
     "flatten": "hardhat flatten ${CONTRACT_SRC} > ${CONTRACT_DST}",
-    "clean": "yarn hardhat clean && rm -rf ./dist",
+    "clean": "yarn hardhat clean && rm -rf ./dist && rm -rf ./cache",
     "test": "hardhat test",
     "typecheck": "yarn compile && yarn test && yarn tsc --noEmit",
     "build": "yarn clean && yarn compile && tsc --build && cp -ap ./conf ./dist/ && cp -ap ./artifacts ./dist/",
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@jovijovi/ether-core": "0.3.1",
-    "@jovijovi/ether-keystore": "0.1.8",
+    "@jovijovi/ether-keystore": "0.1.10",
     "@jovijovi/ether-network": "0.2.0",
     "@jovijovi/express-2fa-token": "^1.0.1",
     "@jovijovi/pedrojs-common": "1.1.5",
