@@ -1,10 +1,10 @@
 import {ethers} from 'hardhat';
 import {utils} from 'ethers';
-import {env} from 'process';
 import {core} from '@jovijovi/ether-core';
 import {network} from '@jovijovi/ether-network';
 import {log} from '@jovijovi/pedrojs-common';
-import {ContractName} from './params';
+import {keystore} from '@jovijovi/ether-keystore';
+import {ContractName, KeystoreTypeContractOwner} from './params';
 import {Avatar, Avatar__factory} from '../../../../typechain-types';
 import {GasPriceCircuitBreaker} from './breaker';
 import {customConfig} from '../../../config';
@@ -24,7 +24,7 @@ function getOperators(): string[] {
 }
 
 // Deploy contract
-export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, isWait = true, reqId?: string): Promise<any> {
+export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, reqId?: string): Promise<any> {
 	// Step 1. Get provider
 	const provider = network.MyProvider.Get();
 
@@ -44,7 +44,9 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 
 	// Step 3. Deploy
 	const operators = getOperators();
-	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(env.DEVELOPER_PK)) as Avatar__factory;
+	const contractOwnerPK = pk ? pk : await keystore.InspectKeystorePK(customConfig.GetMint().contractOwner.address,
+		KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
+	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(contractOwnerPK)) as Avatar__factory;
 	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply, operators);
 
 	if (isWait) {

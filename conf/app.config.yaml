@@ -31,8 +31,10 @@ log:
 
 custom:
   mint:
-    # NFT contract address
-    contractAddress: 'NFT_CONTRACT_ADDRESS'
+    # NFT contract owner
+    contractOwner:
+      address: 'CONTRACT_OWNER_ADDRESS'
+      keyStoreSK: ''
 
     # Gas price threshold
     gasPrice:

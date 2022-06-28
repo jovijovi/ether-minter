@@ -3,7 +3,7 @@ import {auditor, util} from '@jovijovi/pedrojs-common';
 
 // GetMinter returns minter config
 // TODO: Get idle minter randomly.
-export function GetMinter(randomMinter = false): customConfig.Minter {
+export function GetMinter(randomMinter = false): customConfig.Wallet {
 	auditor.Check(customConfig.GetMint().minterList.length > 0, "no minter exist");
 
 	if (!randomMinter) {

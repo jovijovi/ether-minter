@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Permission Control Contract v0.2.1
+// Permission Control Contract v0.2.2
 pragma solidity ^0.8.4;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -88,12 +88,14 @@ abstract contract PermissionControl is Ownable {
     }
 
     /**
-     * @dev Add operators.
+     * @dev Add operators. Skip if operator already exists.
      */
     function addOperators(address[] memory operators) public onlyOwner {
         require(operators.length > 0, "PermissionControl: no operators");
         for (uint256 i = 0; i < operators.length; i++) {
-            require(!_operatorMap[operators[i]], "PermissionControl: operator already exist");
+            if (_operatorMap[operators[i]]) {
+                continue;
+            }
             _operatorMap[operators[i]] = true;
             _operatorList.push(operators[i]);
             emit AddOperator(operators[i]);

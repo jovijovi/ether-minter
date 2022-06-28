@@ -396,6 +396,56 @@ export async function GetSymbol(req, res) {
 	}
 }
 
+export async function GetContractOwner(req, res) {
+	if (!req.query ||
+		!req.query.contractAddress
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		const result = await ABI.GetContractOwner(req.query.contractAddress);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("GetContractOwner failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+}
+
+export async function GetMaxSupply(req, res) {
+	if (!req.query ||
+		!req.query.contractAddress
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		const result = await ABI.GetMaxSupply(req.query.contractAddress);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("GetMaxSupply failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+}
+
 export async function OwnerOf(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress ||
@@ -587,7 +637,8 @@ export async function Deploy(req, res) {
 			req.body.symbol,
 			req.body.baseTokenURI,
 			req.body.maxSupply,
-			req.body.sync, // true: sync; false: async
+			req.body.pk,    // Contract owner PK (Optional)
+			req.body.sync,  // true: sync; false: async
 			req[KEY]);
 
 		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)
@@ -596,6 +647,74 @@ export async function Deploy(req, res) {
 		log.RequestId(req[KEY]).info("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("Deploy failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
+// Set maxSupply
+export async function SetMaxSupply(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.maxSupply
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.SetMaxSupply(
+			req.body.contractAddress,
+			req.body.maxSupply,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("SetMaxSupply failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
+// Set baseTokenURI
+export async function SetBaseTokenURI(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.baseTokenURI
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.SetBaseTokenURI(
+			req.body.contractAddress,
+			req.body.baseTokenURI,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("SetBaseTokenURI failed, error=", e);
 
 		res.send({
 			code: customConfig.GetMint().apiResponseCode.ERROR,

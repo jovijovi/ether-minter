@@ -6,13 +6,13 @@ export namespace customConfig {
 		confirmations: number
 	}
 
-	export class Minter {
+	export class Wallet {
 		address: string
 		keyStoreSK?: string
 	}
 
 	class Mint {
-		contractAddress: string
+		contractOwner: Wallet
 		gasPrice: {
 			upper: {
 				threshold: string
@@ -25,7 +25,7 @@ export namespace customConfig {
 		}
 		apiResponseCode: any
 		randomMinter: boolean
-		minterList: Minter[]
+		minterList: Wallet[]
 	}
 
 	export class CustomConfig {

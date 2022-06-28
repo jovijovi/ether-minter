@@ -12,6 +12,8 @@ function defaultAPIs(router: core.Express) {
 
 function v3APIs(router: core.Express) {
 	router.post('/api/v3/contracts/deploy', API.Deploy);
+	router.post('/api/v3/contracts/maxSupply', API.SetMaxSupply);
+	router.post('/api/v3/contracts/baseTokenURI', API.SetBaseTokenURI);
 	router.post('/api/v3/contracts/mint', API.MintForCreator);
 	router.post('/api/v3/contracts/batch/mint', API.MintTo);
 	router.post('/api/v3/nft/estimate/batch/transfer', API.EstimateGasOfBatchTransfer);
@@ -29,4 +31,6 @@ function v3APIs(router: core.Express) {
 	router.get('/api/v3/contracts/ownerOf', API.OwnerOf);
 	router.get('/api/v3/contracts/balanceOf', API.BalanceOf);
 	router.get('/api/v3/contracts/totalsupply', API.GetGetTotalSupply);
+	router.get('/api/v3/contracts/maxSupply', API.GetMaxSupply);
+	router.get('/api/v3/contracts/owner', API.GetContractOwner);
 }

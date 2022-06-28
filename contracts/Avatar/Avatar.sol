@@ -1,5 +1,15 @@
 // SPDX-License-Identifier: MIT
-// Avatar Contract v0.3.4
+/*
+ *   █████╗ ██╗   ██╗ █████╗ ████████╗ █████╗ ██████╗
+ *  ██╔══██╗██║   ██║██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗
+ *  ███████║██║   ██║███████║   ██║   ███████║██████╔╝
+ *  ██╔══██║╚██╗ ██╔╝██╔══██║   ██║   ██╔══██║██╔══██╗
+ *  ██║  ██║ ╚████╔╝ ██║  ██║   ██║   ██║  ██║██║  ██║
+ *  ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝
+ *
+ *  Avatar Contract v0.3.6
+ */
+
 pragma solidity ^0.8.4;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
@@ -11,7 +21,7 @@ import "./Permission.sol";
 /**
  * @title An avatar NFT contract.
  */
-contract Avatar is ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl {
+contract Avatar is ERC721A, ERC721AQueryable, ReentrancyGuard, Ownable, PermissionControl {
     /* *******
      * Globals
      * *******
