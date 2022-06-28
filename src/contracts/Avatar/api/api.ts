@@ -637,7 +637,8 @@ export async function Deploy(req, res) {
 			req.body.symbol,
 			req.body.baseTokenURI,
 			req.body.maxSupply,
-			req.body.sync, // true: sync; false: async
+			req.body.pk,    // Contract owner PK (Optional)
+			req.body.sync,  // true: sync; false: async
 			req[KEY]);
 
 		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)
