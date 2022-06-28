@@ -691,3 +691,37 @@ export async function SetMaxSupply(req, res) {
 
 	return;
 }
+
+// Set baseTokenURI
+export async function SetBaseTokenURI(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.baseTokenURI
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.SetBaseTokenURI(
+			req.body.contractAddress,
+			req.body.baseTokenURI,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("SetBaseTokenURI failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}

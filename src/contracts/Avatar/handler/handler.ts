@@ -13,6 +13,7 @@ function defaultAPIs(router: core.Express) {
 function v3APIs(router: core.Express) {
 	router.post('/api/v3/contracts/deploy', API.Deploy);
 	router.post('/api/v3/contracts/maxSupply', API.SetMaxSupply);
+	router.post('/api/v3/contracts/baseTokenURI', API.SetBaseTokenURI);
 	router.post('/api/v3/contracts/mint', API.MintForCreator);
 	router.post('/api/v3/contracts/batch/mint', API.MintTo);
 	router.post('/api/v3/nft/estimate/batch/transfer', API.EstimateGasOfBatchTransfer);

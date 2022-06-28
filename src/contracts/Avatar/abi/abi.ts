@@ -604,3 +604,58 @@ export async function SetMaxSupply(address: string, maxSupply: number, reqId?: s
 		}
 	};
 }
+
+// Set baseTokenURI
+export async function SetBaseTokenURI(address: string, baseTokenURI: string, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const contractOwner = (await GetContractOwner(address)).data.owner;
+	if (contractOwner !== customConfig.GetMint().contractOwner.address) {
+		log.RequestId(reqId).warn("Not found contract owner(%s) SK", contractOwner);
+		return {
+			code: customConfig.GetMintRspCode().NOTFOUND,
+			msg: "Not found contract owner SK",
+		}
+	}
+	const contract = GetContract(address, await keystore.InspectKeystorePK(
+		contractOwner, KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK));
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await network.MyProvider.Get().getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("SetBaseTokenURI request terminated due to high gas price. ContractAddress=%s, ContractOwner=%s, BaseTokenURI=%s, GasPrice=%sGwei",
+			address, contractOwner, baseTokenURI, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "SetBaseTokenURI request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.setBaseTokenURI(baseTokenURI);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("SetBaseTokenURI... ContractAddress=%s, ContractOwner=%s, BaseTokenURI=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, contractOwner, baseTokenURI, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. SetBaseTokenURI
+	const tx = await contract.setBaseTokenURI(baseTokenURI, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("SetBaseTokenURI tx committed. ContractAddress=%s, ContractOwner=%s, BaseTokenURI=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, contractOwner, baseTokenURI, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "SetBaseTokenURI tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
