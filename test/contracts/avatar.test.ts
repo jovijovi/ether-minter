@@ -403,20 +403,30 @@ describe("NFT Contract", function () {
 		let operatorList = await contract.getOperatorList();
 		console.debug("## OperatorList(Before addOperators)=", operatorList);
 
+		// Add operators
 		const operators = [signer1Address, signer2Address];
 		console.debug("## Adding operators(%s)...", operators);
-		const tx = await contract.addOperators(operators);
-		const receipt = await tx.wait(Confirmations);
+		const tx1 = await contract.addOperators(operators);
+		const receipt1 = await tx1.wait(Confirmations);
+		expect(receipt1.status).to.equal(StatusSuccessful);
+		console.debug("## Add operators(%o) completed, tx=", operators, receipt1.transactionHash);
+
+		// Add operators again
+		const tx2 = await contract.addOperators([signer2Address, signer3Address]);
+		const receipt2 = await tx2.wait(Confirmations);
+		expect(receipt2.status).to.equal(StatusSuccessful);
+		console.debug("## Add operators(%o) completed, tx=", operators, receipt2.transactionHash);
 
 		operatorList = await contract.getOperatorList();
 		console.debug("## OperatorList(After addOperators)=", operatorList);
 
+		// Check
 		const isOperator1 = operatorList.includes(signer1Address);
 		expect(isOperator1).to.equal(true);
 		const isOperator2 = operatorList.includes(signer2Address);
 		expect(isOperator2).to.equal(true);
-
-		console.debug("## Add operators(%o) completed, tx=", operators, receipt.transactionHash);
+		const isOperator3 = operatorList.includes(signer3Address);
+		expect(isOperator3).to.equal(true);
 	})
 
 	// Finalize contract
