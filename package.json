@@ -29,7 +29,7 @@
     "dist-run": "node ./dist/src/main/index.js"
   },
   "dependencies": {
-    "@jovijovi/ether-core": "0.3.1",
+    "@jovijovi/ether-core": "0.3.2",
     "@jovijovi/ether-keystore": "0.1.10",
     "@jovijovi/ether-network": "0.2.0",
     "@jovijovi/express-2fa-token": "^1.0.1",

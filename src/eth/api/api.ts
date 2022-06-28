@@ -130,7 +130,7 @@ export async function getBalanceOf(req, res) {
 	log.RequestId().debug("New request query=", req.query);
 
 	try {
-		const balanceResult = await core.GetBalanceOf(req.query.address);
+		const balanceResult = await core.GetBalanceOf(req.query.address, req.query.blockHash);
 
 		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, balanceResult));
 
