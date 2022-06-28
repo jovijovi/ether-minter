@@ -9,6 +9,7 @@ export const Confirmations = 1;
 
 // KeyStore type
 export const KeystoreTypeMinter = 'minter';
+export const KeystoreTypeContractOwner = 'owner';
 
 // Mint quantity by default
 export const MintQuantity = 1;

@@ -6,7 +6,7 @@ import {core} from '@jovijovi/ether-core';
 import {customConfig} from '../../../config';
 import {GetContract} from './common';
 import {GetMinter} from './minter';
-import {KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
+import {KeystoreTypeContractOwner, KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
 import {GasPriceCircuitBreaker} from './breaker';
 import {CheckTopics} from './topics';
 
@@ -354,6 +354,17 @@ export async function GetSymbol(address: string) {
 	}
 }
 
+// Get contract owner
+export async function GetContractOwner(address: string) {
+	const contract = GetContract(address);
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			owner: await contract.owner(),
+		}
+	}
+}
+
 // Get owner of NFT by tokenId
 export async function OwnerOf(address: string, tokenId: string) {
 	const contract = GetContract(address);
@@ -520,6 +531,62 @@ export async function BatchBurn(address: string, fromTokenId: string, toTokenId:
 	return {
 		code: customConfig.GetMintRspCode().OK,
 		msg: "BatchBurn tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
+
+// Set maxSupply
+export async function SetMaxSupply(address: string, maxSupply: number, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const contractOwner = (await GetContractOwner(address)).data.owner;
+	if (contractOwner !== customConfig.GetMint().contractOwner.address) {
+		log.RequestId(reqId).warn("Not found contract owner(%s) SK", contractOwner);
+		return {
+			code: customConfig.GetMintRspCode().NOTFOUND,
+			msg: "Not found contract owner SK",
+		}
+	}
+	const pk = await keystore.InspectKeystorePK(contractOwner, KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
+	const contract = GetContract(address, pk);
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const provider = network.MyProvider.Get();
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("SetMaxSupply request terminated due to high gas price. ContractAddress=%s, ContractOwner=%s, MaxSupply=%d, GasPrice=%sGwei",
+			address, contractOwner, maxSupply, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "SetMaxSupply request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.setMaxSupply(maxSupply);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("SetMaxSupply... ContractAddress=%s, ContractOwner=%s, MaxSupply=%d, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, contractOwner, maxSupply, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. SetMaxSupply
+	const tx = await contract.setMaxSupply(maxSupply, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("SetMaxSupply tx committed. ContractAddress=%s, ContractOwner=%s, MaxSupply=%d, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, contractOwner, maxSupply, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "SetMaxSupply tx committed",
 		data: {
 			"txHash": tx.hash,
 			"tx": tx,

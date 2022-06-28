@@ -607,3 +607,37 @@ export async function Deploy(req, res) {
 
 	return;
 }
+
+// Set maxSupply
+export async function SetMaxSupply(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.maxSupply
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.SetMaxSupply(
+			req.body.contractAddress,
+			req.body.maxSupply,
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("SetMaxSupply failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
