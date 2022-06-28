@@ -365,6 +365,17 @@ export async function GetContractOwner(address: string) {
 	}
 }
 
+// Get maxSupply
+export async function GetMaxSupply(address: string) {
+	const contract = GetContract(address);
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		data: {
+			maxSupply: (await contract.maxSupply()).toNumber(),
+		}
+	}
+}
+
 // Get owner of NFT by tokenId
 export async function OwnerOf(address: string, tokenId: string) {
 	const contract = GetContract(address);

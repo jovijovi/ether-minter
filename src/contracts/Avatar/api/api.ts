@@ -396,6 +396,31 @@ export async function GetSymbol(req, res) {
 	}
 }
 
+export async function GetMaxSupply(req, res) {
+	if (!req.query ||
+		!req.query.contractAddress
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		const result = await ABI.GetMaxSupply(req.query.contractAddress);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).debug("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("GetMaxSupply failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+}
+
 export async function OwnerOf(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress ||
