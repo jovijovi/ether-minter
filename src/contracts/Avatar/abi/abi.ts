@@ -228,13 +228,11 @@ export async function GetMintReceipt(txHash: string, reqId?: string): Promise<an
 				continue;
 			}
 
-			const tokenId = receipt.logs[i].topics[3];
-			tokenIds.push(Number(tokenId));
-			log.RequestId(reqId).debug("TokenId=%s, status=minted, block=%d, tx=%s", utils.stripZeros(tokenId), receipt.blockNumber, txHash);
+			tokenIds.push(Number(receipt.logs[i].topics[3]));
 		}
 	}
 
-	log.RequestId(reqId).trace("Mint Receipt=%o", receipt);
+	log.RequestId(reqId).debug("TxHash(%s) checked. BlockNumber=%d, Minted tokenIds=%j", txHash, receipt.blockNumber, tokenIds);
 
 	return {
 		code: customConfig.GetMintRspCode().OK,
