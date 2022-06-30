@@ -606,8 +606,8 @@ export async function SetMaxSupply(address: string, maxSupply: number, reqId?: s
 // Set baseTokenURI
 export async function SetBaseTokenURI(address: string, baseTokenURI: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
-	const contractOwner = (await GetContractOwner(address)).data.owner;
-	if (contractOwner !== customConfig.GetMint().contractOwner.address) {
+	const contractOwner = (await GetContractOwner(address)).data.owner.toLowerCase();
+	if (contractOwner !== customConfig.GetMint().contractOwner.address.toLowerCase()) {
 		log.RequestId(reqId).warn("Not found contract owner(%s) SK", contractOwner);
 		return {
 			code: customConfig.GetMintRspCode().NOTFOUND,
