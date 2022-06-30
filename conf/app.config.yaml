@@ -88,6 +88,35 @@ custom:
     confirmations: 3
 
   networks:
+    # Ethereum
+    ethereum:
+      mainnet:
+        # Chain ID
+        chainId: 1
+        # Provider URL
+        provider:
+          - 'YOUR PROVIDER'
+        # Blockchain explorer URL
+        browser: https://etherscan.io
+
+      ropsten:
+        chainId: 3
+        provider:
+          - 'YOUR PROVIDER'
+        browser: https://ropsten.etherscan.io
+
+      rinkeby:
+        chainId: 4
+        provider:
+          - 'YOUR PROVIDER'
+        browser: https://rinkeby.etherscan.io
+
+      goerli:
+        chainId: 5
+        provider:
+          - 'YOUR PROVIDER'
+        browser: https://goerli.etherscan.io
+
     # Polygon
     # Ref: https://docs.polygon.technology/docs/develop/network-details/network
     polygon:
