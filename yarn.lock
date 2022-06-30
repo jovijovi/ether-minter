@@ -448,10 +448,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@jovijovi/ether-core@0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@jovijovi/ether-core/-/ether-core-0.3.2.tgz#55e4e6ecb1d131a1323efee318442d76796b0a71"
-  integrity sha512-q0PfF1H9SeHV6rrUr7L71NwpKr/WzkaxLwZxYsHt5S/kgokGNcbDT1Sqw0dXqm+MP7YLDl/o0onEQin1CmEUeA==
+"@jovijovi/ether-core@0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@jovijovi/ether-core/-/ether-core-0.3.3.tgz#6d3270af2e335242f83bee47e8e70d71f26d8d6f"
+  integrity sha512-W7Sk0NhWYkHZAmOnwM5NnvfEf01Iwrt+5y392E+6xTVn8Ka8+gFv4Hg5LtnabSKzkQU8rl+desFiWuSbqXG0qQ==
   dependencies:
     "@jovijovi/ether-network" "^0.2.0"
     "@jovijovi/pedrojs-common" "^1.1.5"
