@@ -1,6 +1,6 @@
 {
   "name": "ether-minter",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "An NFT minter microservice",
   "author": "jovijovi <mageyul@hotmail.com>",
   "license": "MIT",
@@ -35,10 +35,9 @@
     "@jovijovi/express-2fa-token": "^1.0.1",
     "@jovijovi/pedrojs-common": "1.1.5",
     "@jovijovi/pedrojs-network-http": "1.1.5",
-    "@openzeppelin/contracts": "4.6.0",
-    "@types/lru-cache": "^7.10.10",
+    "@openzeppelin/contracts": "4.7.0",
     "@types/node-schedule": "^2.1.0",
-    "erc721a": "4.0.0",
+    "erc721a": "4.1.0",
     "ethers": "5.6.9"
   },
   "devDependencies": {
