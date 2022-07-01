@@ -60,7 +60,7 @@ export async function MintTo(address: string, to: string, quantity: number, reqI
 	// Step 1. Get minter
 	const provider = network.MyProvider.Get();
 	const minter = GetMinter(customConfig.GetMint().randomMinter);
-	const pk = await keystore.InspectKeystorePK(minter.address, KeystoreTypeMinter, minter.keyStoreSK);
+	const pk = await keystore.InspectKeystorePK(minter.address.toLowerCase(), KeystoreTypeMinter, minter.keyStoreSK);
 	const contract = GetContract(address, pk);
 
 	// Step 2. Check gas price
@@ -122,7 +122,7 @@ async function mintForCreator(address: string, to: string, contentHashList: stri
 	// Step 1. Get minter
 	const provider = network.MyProvider.Get();
 	const minter = GetMinter(customConfig.GetMint().randomMinter);
-	const pk = await keystore.InspectKeystorePK(minter.address, KeystoreTypeMinter, minter.keyStoreSK);
+	const pk = await keystore.InspectKeystorePK(minter.address.toLowerCase(), KeystoreTypeMinter, minter.keyStoreSK);
 	const contract = GetContract(address, pk);
 
 	// Step 2. Check if content hash exists
@@ -550,8 +550,8 @@ export async function BatchBurn(address: string, fromTokenId: string, toTokenId:
 // Set maxSupply
 export async function SetMaxSupply(address: string, maxSupply: number, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
-	const contractOwner = (await GetContractOwner(address)).data.owner;
-	if (contractOwner !== customConfig.GetMint().contractOwner.address) {
+	const contractOwner = (await GetContractOwner(address)).data.owner.toLowerCase();
+	if (contractOwner !== customConfig.GetMint().contractOwner.address.toLowerCase()) {
 		log.RequestId(reqId).warn("Not found contract owner(%s) SK", contractOwner);
 		return {
 			code: customConfig.GetMintRspCode().NOTFOUND,
