@@ -39,11 +39,11 @@ const config: HardhatUserConfig = {
         version: '0.8.9',
         settings: {
           // You should disable the optimizer when debugging
-          // https://hardhat.org/hardhat-network/#solidity-optimizer-support
-          optimizer: {
-            enabled: true,
-            runs: 200
-          },
+          // https://hardhat.org/guides/compile-contracts#configuring-the-compiler
+          // optimizer: {
+          //   enabled: true,
+          //   runs: 200
+          // },
         }
       }
     ],
