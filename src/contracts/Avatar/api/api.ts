@@ -4,6 +4,7 @@ import {ABI, Deployer} from '../abi';
 import {Cache} from '../../../common/cache';
 import {customConfig} from '../../../config';
 import * as MyResponse from '../../../common/response/response';
+import {ErrorResponse} from './response';
 
 // Get total supply
 export async function GetGetTotalSupply(req, res) {
@@ -168,13 +169,7 @@ export async function MintTo(req, res) {
 		log.RequestId(req[KEY]).info("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("MintTo failed, error=", e);
-
-		res.send({
-			code: customConfig.GetMint().apiResponseCode.ERROR,
-			msg: e.toString(),
-		});
-
-		return;
+		return ErrorResponse(e, res);
 	}
 
 	return;
@@ -200,13 +195,7 @@ export async function MintForCreator(req, res) {
 		log.RequestId(req[KEY]).info("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("MintForCreator failed, error=", e);
-
-		res.send({
-			code: customConfig.GetMint().apiResponseCode.ERROR,
-			msg: e.toString(),
-		});
-
-		return;
+		return ErrorResponse(e, res);
 	}
 
 	return;
