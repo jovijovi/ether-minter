@@ -24,15 +24,15 @@ function getOperators(): string[] {
 }
 
 // Deploy contract
-export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, reqId?: string): Promise<any> {
+export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, gasPriceC: number, reqId?: string): Promise<any> {
 	// Step 1. Get provider
 	const provider = network.MyProvider.Get();
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
 	const gasPrice = await provider.getGasPrice();
-	// Calc floating gas price by gasPriceC (GasPrice coefficient)
-	const floatingGasPrice = gasPrice.mul(BigNumber.from(customConfig.GetTxConfig().gasPriceC)).div(100);
+	// Calc floating gas price by gasPriceC (GasPrice coefficient), get gasPriceC from the request, otherwise from config
+	const floatingGasPrice = gasPrice.mul(BigNumber.from(gasPriceC ? gasPriceC : customConfig.GetTxConfig().gasPriceC)).div(100);
 	// Calc final gas price
 	const finalGasPrice = floatingGasPrice.gt(gasPrice) ? floatingGasPrice : gasPrice;
 	log.RequestId(reqId).info("OriginalGasPrice=%sGwei, FinalGasPrice=%sGwei",
