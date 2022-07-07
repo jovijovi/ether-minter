@@ -34,8 +34,9 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 	// Calc floating gas price by gasPriceC (GasPrice coefficient)
 	const floatingGasPrice = gasPrice.mul(BigNumber.from(customConfig.GetTxConfig().gasPriceC)).div(100);
 	// Calc final gas price
-	const finalGasPrice = floatingGasPrice > gasPrice ? floatingGasPrice : gasPrice;
-	log.RequestId(reqId).info("FinalGasPrice=%sGwei", utils.formatUnits(finalGasPrice, "gwei"));
+	const finalGasPrice = floatingGasPrice.gt(gasPrice) ? floatingGasPrice : gasPrice;
+	log.RequestId(reqId).info("OriginalGasPrice=%sGwei, FinalGasPrice=%sGwei",
+		utils.formatUnits(gasPrice, "gwei"), utils.formatUnits(finalGasPrice, "gwei"));
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(finalGasPrice, reqId)) {
