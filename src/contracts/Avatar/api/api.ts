@@ -4,6 +4,7 @@ import {ABI, Deployer} from '../abi';
 import {Cache} from '../../../common/cache';
 import {customConfig} from '../../../config';
 import * as MyResponse from '../../../common/response/response';
+import {ErrorResponse} from './response';
 
 // Get total supply
 export async function GetGetTotalSupply(req, res) {
@@ -168,13 +169,7 @@ export async function MintTo(req, res) {
 		log.RequestId(req[KEY]).info("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("MintTo failed, error=", e);
-
-		res.send({
-			code: customConfig.GetMint().apiResponseCode.ERROR,
-			msg: e.toString(),
-		});
-
-		return;
+		return ErrorResponse(e, res);
 	}
 
 	return;
@@ -200,13 +195,7 @@ export async function MintForCreator(req, res) {
 		log.RequestId(req[KEY]).info("Result=\n%o", result);
 	} catch (e) {
 		log.RequestId(req[KEY]).error("MintForCreator failed, error=", e);
-
-		res.send({
-			code: customConfig.GetMint().apiResponseCode.ERROR,
-			msg: e.toString(),
-		});
-
-		return;
+		return ErrorResponse(e, res);
 	}
 
 	return;
@@ -638,7 +627,8 @@ export async function Deploy(req, res) {
 			req.body.baseTokenURI,
 			req.body.maxSupply,
 			req.body.pk,    // Contract owner PK (Optional)
-			req.body.sync,  // true: sync; false: async
+			req.body.sync,  // true: sync; false: async (Optional)
+			req.body.gasPriceC, // GasPrice coefficient (Optional)
 			req[KEY]);
 
 		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)

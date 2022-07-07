@@ -1,5 +1,5 @@
 import {ethers} from 'hardhat';
-import {utils} from 'ethers';
+import {BigNumber, utils} from 'ethers';
 import {core} from '@jovijovi/ether-core';
 import {network} from '@jovijovi/ether-network';
 import {log} from '@jovijovi/pedrojs-common';
@@ -24,18 +24,24 @@ function getOperators(): string[] {
 }
 
 // Deploy contract
-export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, reqId?: string): Promise<any> {
+export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, gasPriceC: number, reqId?: string): Promise<any> {
 	// Step 1. Get provider
 	const provider = network.MyProvider.Get();
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
 	const gasPrice = await provider.getGasPrice();
+	// Calc floating gas price by gasPriceC (GasPrice coefficient), get gasPriceC from the request, otherwise from config
+	const floatingGasPrice = gasPrice.mul(BigNumber.from(gasPriceC ? gasPriceC : customConfig.GetTxConfig().gasPriceC)).div(100);
+	// Calc final gas price
+	const finalGasPrice = floatingGasPrice.gt(gasPrice) ? floatingGasPrice : gasPrice;
+	log.RequestId(reqId).info("OriginalGasPrice=%sGwei, FinalGasPrice=%sGwei",
+		utils.formatUnits(gasPrice, "gwei"), utils.formatUnits(finalGasPrice, "gwei"));
 
 	// Check gasPrice by circuit breaker
-	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+	if (GasPriceCircuitBreaker(finalGasPrice, reqId)) {
 		log.RequestId(reqId).warn("Deploy request terminated due to high gas price. Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
-			name, symbol, baseTokenURI, utils.formatUnits(gasPrice, "gwei"));
+			name, symbol, baseTokenURI, utils.formatUnits(finalGasPrice, "gwei"));
 		return {
 			code: customConfig.GetMintRspCode().THRESHOLD,
 			msg: "Deploy request terminated due to high gas price",
@@ -47,15 +53,21 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 	const contractOwnerPK = pk ? pk : await keystore.InspectKeystorePK(customConfig.GetMint().contractOwner.address,
 		KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
 	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(contractOwnerPK)) as Avatar__factory;
-	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply, operators);
+	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply, operators, {
+		gasPrice: finalGasPrice,
+	});
 
 	if (isWait) {
+		log.RequestId(reqId).info("Contract(%s) deploying... Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
+			contract.address, name, symbol, baseTokenURI, utils.formatUnits(finalGasPrice, "gwei"));
+
 		await contract.deployTransaction.wait();
+
 		log.RequestId(reqId).info("Contract(%s) deployed. Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
-			contract.address, name, symbol, baseTokenURI, utils.formatUnits(gasPrice, "gwei"));
+			contract.address, name, symbol, baseTokenURI, utils.formatUnits(finalGasPrice, "gwei"));
 	} else {
 		log.RequestId(reqId).info("Deploy contract(%s) tx committed. Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
-			contract.address, name, symbol, baseTokenURI, utils.formatUnits(gasPrice, "gwei"));
+			contract.address, name, symbol, baseTokenURI, utils.formatUnits(finalGasPrice, "gwei"));
 	}
 
 	return {

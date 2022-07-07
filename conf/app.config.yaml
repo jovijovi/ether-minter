@@ -60,6 +60,7 @@ custom:
       THRESHOLD: 'YOUR_RESPONSE_CODE'
       DUPLICATE: 'YOUR_RESPONSE_CODE'
       NOTFOUND: 'YOUR_RESPONSE_CODE'
+      MAXSUPPLY: 'YOUR_RESPONSE_CODE'
 
     # Mints NFT by random minter, set 'true' to enable (Optional)
     randomMinter: true
@@ -84,6 +85,12 @@ custom:
     # GasLimit coefficient (%)
     # Example: 110 means gasLimit * 110%
     gasLimitC: 110
+
+    # GasPrice coefficient (%)
+    # May be useful for testnet
+    # Example: 110 means gasPrice * 110%
+    gasPriceC: 110
+
     # Transfer confirmations
     confirmations: 3
 
