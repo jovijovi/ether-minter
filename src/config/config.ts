@@ -3,6 +3,7 @@ import {config} from '@jovijovi/pedrojs-common';
 export namespace customConfig {
 	class TxConfig {
 		gasLimitC: number
+		gasPriceC: number
 		confirmations: number
 	}
 

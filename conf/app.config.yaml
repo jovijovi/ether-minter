@@ -85,6 +85,12 @@ custom:
     # GasLimit coefficient (%)
     # Example: 110 means gasLimit * 110%
     gasLimitC: 110
+
+    # GasPrice coefficient (%)
+    # May be useful for testnet
+    # Example: 110 means gasPrice * 110%
+    gasPriceC: 110
+
     # Transfer confirmations
     confirmations: 3
 
