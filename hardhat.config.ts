@@ -1,5 +1,6 @@
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
+import '@openzeppelin/hardhat-upgrades';
 import {env} from 'process';
 import {HardhatUserConfig, NetworkUserConfig} from 'hardhat/types';
 import {customConfig as AppCustomConfig} from './src/config';

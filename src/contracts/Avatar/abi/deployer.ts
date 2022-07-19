@@ -1,11 +1,11 @@
-import {ethers} from 'hardhat';
+import {ethers, upgrades} from 'hardhat';
 import {BigNumber, utils} from 'ethers';
 import {core} from '@jovijovi/ether-core';
 import {network} from '@jovijovi/ether-network';
 import {log} from '@jovijovi/pedrojs-common';
 import {keystore} from '@jovijovi/ether-keystore';
 import {ContractName, KeystoreTypeContractOwner} from './params';
-import {Avatar, Avatar__factory} from '../../../../typechain-types';
+import {Avatar__factory} from '../../../../typechain-types';
 import {GasPriceCircuitBreaker} from './breaker';
 import {customConfig} from '../../../config';
 
@@ -53,9 +53,13 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 	const contractOwnerPK = pk ? pk : await keystore.InspectKeystorePK(customConfig.GetMint().contractOwner.address,
 		KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
 	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(contractOwnerPK)) as Avatar__factory;
-	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply, operators, {
-		gasPrice: finalGasPrice,
-	});
+	// TODO:
+	const contract = await upgrades.deployProxy(factory,
+		[name, symbol, baseTokenURI, maxSupply, operators],
+		{initializer: '__Avatar_init'});
+	// const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply, operators, {
+	// 	gasPrice: finalGasPrice,
+	// });
 
 	if (isWait) {
 		log.RequestId(reqId).info("Contract(%s) deploying... Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",

@@ -2,9 +2,9 @@
 // Permission Control Contract v0.2.2
 pragma solidity ^0.8.4;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-abstract contract PermissionControl is Ownable {
+abstract contract PermissionControl is OwnableUpgradeable {
     /**
      * @dev Operator map.
      */
@@ -52,7 +52,7 @@ abstract contract PermissionControl is Ownable {
     /**
      * @dev Initializes the contract setting default operator as the initial owner.
      */
-    constructor() {
+    function __PermissionControl_init() public {
         addOperator(_msgSender());
     }
 
