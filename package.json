@@ -1,6 +1,6 @@
 {
   "name": "ether-minter",
-  "version": "0.6.19",
+  "version": "1.0.0",
   "description": "An NFT minter microservice",
   "author": "jovijovi <mageyul@hotmail.com>",
   "license": "MIT",
@@ -50,8 +50,8 @@
     "@types/chai-as-promised": "7.1.5",
     "@types/mocha": "9.1.1",
     "@types/node": "18.0.6",
-    "@typescript-eslint/eslint-plugin": "^5.30.6",
-    "@typescript-eslint/parser": "^5.30.6",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
     "chai": "4.3.6",
     "chai-as-promised": "^7.1.1",
     "eslint": "^8.20.0",
