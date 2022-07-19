@@ -7,10 +7,10 @@
  *  ██║  ██║ ╚████╔╝ ██║  ██║   ██║   ██║  ██║██║  ██║
  *  ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝
  *
- *  Avatar Contract v0.3.7
+ *  Avatar Contract v0.4.0
  *  Dependencies:
  *  "@openzeppelin/contracts": "4.7.0"
- *  "erc721a": "4.1.0"
+ *  "erc721a": "4.2.0"
  */
 
 pragma solidity ^0.8.4;
