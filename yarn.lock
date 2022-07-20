@@ -761,7 +761,7 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.7.0.tgz#6437261286879d353f6de7bf3ac8216bef8a486d"
   integrity sha512-wO3PyoAaAV/rA77cK8H4c3SbO98QylTjfiFxyvURUZKTFLV180rnAvna1x7/Nxvt0Gqv+jt1sXKC7ygxsq8iCw==
 
-"@openzeppelin/hardhat-upgrades@^1.19.0":
+"@openzeppelin/hardhat-upgrades@1.19.0":
   version "1.19.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/hardhat-upgrades/-/hardhat-upgrades-1.19.0.tgz#8f17210b924eb04c3ea4aa9795c1bb01d8a7dc3f"
   integrity sha512-351QqDO3nZ96g0BO/bQnaTflix4Nw4ELWC/hZ8PwicsuVxRmxN/GZhxPrs62AOdiQdZ+xweawrVXa5knliRd4A==
@@ -1081,9 +1081,9 @@
     "@types/sinon" "*"
 
 "@types/sinon@*":
-  version "10.0.12"
-  resolved "https://registry.yarnpkg.com/@types/sinon/-/sinon-10.0.12.tgz#fb7009ea71f313a9da4644ba73b94e44d6b84f7f"
-  integrity sha512-uWf4QJ4oky/GckJ1MYQxU52cgVDcXwBhDkpvLbi4EKoLPqLE4MOH6T/ttM33l3hi0oZ882G6oIzWv/oupRYSxQ==
+  version "10.0.13"
+  resolved "https://registry.yarnpkg.com/@types/sinon/-/sinon-10.0.13.tgz#60a7a87a70d9372d0b7b38cc03e825f46981fb83"
+  integrity sha512-UVjDqJblVNQYvVNUsj0PuYYw0ELRmgt1Nt5Vk0pT5f16ROGfcKJY8o1HVuMOJOpD727RrGB9EGvoaTQE5tgxZQ==
   dependencies:
     "@types/sinonjs__fake-timers" "*"
 
