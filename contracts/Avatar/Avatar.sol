@@ -9,14 +9,14 @@
  *
  *  Avatar Contract v0.4.0
  *  Dependencies:
- *  "@openzeppelin/contracts": "4.7.0"
- *  "erc721a": "4.2.0"
+ *  "@openzeppelin/contracts-upgradeable": "4.7.0"
+ *  "erc721a-upgradeable": "4.2.0"
  */
 
 pragma solidity ^0.8.4;
 
 import "erc721a-upgradeable/contracts/ERC721AUpgradeable.sol";
-//import {ERC721AQueryableUpgradeable} from "erc721a-upgradeable/contracts/extensions/ERC721AQueryableUpgradeable.sol";
+import "erc721a-upgradeable/contracts/extensions/ERC721AQueryableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./Permission.sol";
@@ -24,8 +24,7 @@ import "./Permission.sol";
 /**
  * @title An avatar NFT contract.
  */
-//contract Avatar is ERC721AUpgradeable, ERC721AQueryableUpgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable, PermissionControl {
-contract Avatar is ERC721AUpgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable, PermissionControl {
+contract Avatar is ERC721AUpgradeable, ERC721AQueryableUpgradeable, ReentrancyGuardUpgradeable, OwnableUpgradeable, PermissionControl {
     /* *******
      * Globals
      * *******
@@ -117,12 +116,16 @@ contract Avatar is ERC721AUpgradeable, ReentrancyGuardUpgradeable, OwnableUpgrad
     /**
      * @dev Initializes the contract by setting `name`, `symbol`, `baseTokenURI`, `maxSupply` and `operators` to the token collection.
      * `operators` is optional.
+     * `initializerERC721A` for `ERC721AUpgradeable`.
+     * `initializer` for OpenZeppelin's `OwnableUpgradeable`.
      */
-    // Take note of the initializer modifiers.
-    // - `initializerERC721A` for `ERC721AUpgradeable`.
-    // - `initializer` for OpenZeppelin's `OwnableUpgradeable`.
     function __Avatar_init(string memory name_, string memory symbol_, string memory baseTokenURI_, uint256 maxSupply_,
-        address[] memory operators) initializerERC721A initializer public {
+        address[] memory operators) public initializerERC721A initializer {
+        __Avatar_init_unchained(name_, symbol_, baseTokenURI_, maxSupply_, operators);
+    }
+
+    function __Avatar_init_unchained(string memory name_, string memory symbol_, string memory baseTokenURI_, uint256 maxSupply_,
+        address[] memory operators) public initializerERC721A initializer {
         require(maxSupply_ > 0, "Avatar: invalid maxSupply");
 
         __ERC721A_init(name_, symbol_);
@@ -136,14 +139,6 @@ contract Avatar is ERC721AUpgradeable, ReentrancyGuardUpgradeable, OwnableUpgrad
             addOperators(operators);
         }
     }
-    //    constructor(string memory name_, string memory symbol_, string memory baseTokenURI_, uint256 maxSupply_, address[] memory operators) ERC721A(name_, symbol_) {
-    //        require(maxSupply_ > 0, "Avatar: invalid maxSupply");
-    //        _baseTokenURI = baseTokenURI_;
-    //        maxSupply = maxSupply_;
-    //        if (operators.length > 0) {
-    //            addOperators(operators);
-    //        }
-    //    }
 
     /* ****************
      * Public Functions

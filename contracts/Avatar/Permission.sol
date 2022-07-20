@@ -52,7 +52,7 @@ abstract contract PermissionControl is OwnableUpgradeable {
     /**
      * @dev Initializes the contract setting default operator as the initial owner.
      */
-    function __PermissionControl_init() public {
+    function __PermissionControl_init() public initializer {
         addOperator(_msgSender());
     }
 
