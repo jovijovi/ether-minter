@@ -30,7 +30,7 @@ function getNetworkConfig(): NetworkUserConfig {
 }
 
 const config: HardhatUserConfig = {
-  // defaultNetwork: 'custom',
+  defaultNetwork: 'custom',
   networks: {
     custom: getNetworkConfig()
   },
@@ -41,10 +41,10 @@ const config: HardhatUserConfig = {
         settings: {
           // You should disable the optimizer when debugging
           // https://hardhat.org/guides/compile-contracts#configuring-the-compiler
-          // optimizer: {
-          //   enabled: true,
-          //   runs: 200
-          // },
+          optimizer: {
+            enabled: true,
+            runs: 200
+          },
         }
       }
     ],

@@ -4,8 +4,14 @@ import {core} from '@jovijovi/ether-core';
 import {network} from '@jovijovi/ether-network';
 import {log} from '@jovijovi/pedrojs-common';
 import {keystore} from '@jovijovi/ether-keystore';
-import {ContractName, KeystoreTypeContractOwner} from './params';
-import {Avatar__factory} from '../../../../typechain-types';
+import {
+	ContractName,
+	DefaultContractInitializer,
+	DefaultPollingInterval,
+	DefaultProxyPattern,
+	KeystoreTypeContractOwner
+} from './params';
+import {Avatar, Avatar__factory} from '../../../../typechain-types';
 import {GasPriceCircuitBreaker} from './breaker';
 import {customConfig} from '../../../config';
 
@@ -53,19 +59,22 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 	const contractOwnerPK = pk ? pk : await keystore.InspectKeystorePK(customConfig.GetMint().contractOwner.address,
 		KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
 	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(contractOwnerPK)) as Avatar__factory;
-	// TODO:
+
+	// Deploy upgradeable contract via the transparent proxy pattern
+	// TODO: deploy contracts by custom gasPrice, ref: https://github.com/OpenZeppelin/openzeppelin-upgrades/issues/85
 	const contract = await upgrades.deployProxy(factory,
 		[name, symbol, baseTokenURI, maxSupply, operators],
-		{initializer: '__Avatar_init'});
-	// const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply, operators, {
-	// 	gasPrice: finalGasPrice,
-	// });
+		{
+			initializer: DefaultContractInitializer,
+			kind: DefaultProxyPattern,
+			pollingInterval: DefaultPollingInterval,
+		}) as Avatar;
 
 	if (isWait) {
 		log.RequestId(reqId).info("Contract(%s) deploying... Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
 			contract.address, name, symbol, baseTokenURI, utils.formatUnits(finalGasPrice, "gwei"));
 
-		await contract.deployTransaction.wait();
+		await contract.deployed();
 
 		log.RequestId(reqId).info("Contract(%s) deployed. Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",
 			contract.address, name, symbol, baseTokenURI, utils.formatUnits(finalGasPrice, "gwei"));

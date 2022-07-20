@@ -13,3 +13,12 @@ export const KeystoreTypeContractOwner = 'owner';
 
 // Mint quantity by default
 export const MintQuantity = 1;
+
+// Default contract proxy pattern
+export const DefaultProxyPattern = 'transparent';
+
+// Default contract initializer
+export const DefaultContractInitializer = '__Avatar_init';
+
+// Default polling interval (Unit: milliseconds)
+export const DefaultPollingInterval = 1000;
