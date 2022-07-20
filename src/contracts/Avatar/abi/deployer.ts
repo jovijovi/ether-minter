@@ -54,16 +54,25 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 		};
 	}
 
-	// Step 3. Deploy
-	const operators = getOperators();
+	// Step 3. Deploy contract
 	const contractOwnerPK = pk ? pk : await keystore.InspectKeystorePK(customConfig.GetMint().contractOwner.address,
 		KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
-	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(contractOwnerPK)) as Avatar__factory;
+
+	// Deploy contracts by custom gasPrice
+	// Wrap the provider to override fee data. ref: https://github.com/OpenZeppelin/openzeppelin-upgrades/issues/85
+	const fallbackProvider = new ethers.providers.FallbackProvider([provider], 1);
+	const FeeData = {
+		maxFeePerGas: null,
+		maxPriorityFeePerGas: null,
+		gasPrice: finalGasPrice,
+	};
+	fallbackProvider.getFeeData = async () => FeeData;
 
 	// Deploy upgradeable contract via the transparent proxy pattern
-	// TODO: deploy contracts by custom gasPrice, ref: https://github.com/OpenZeppelin/openzeppelin-upgrades/issues/85
+	const factory: Avatar__factory = await ethers.getContractFactory(ContractName,
+		core.GetWallet(contractOwnerPK).connect(fallbackProvider)) as Avatar__factory;
 	const contract = await upgrades.deployProxy(factory,
-		[name, symbol, baseTokenURI, maxSupply, operators],
+		[name, symbol, baseTokenURI, maxSupply, getOperators()],
 		{
 			initializer: DefaultContractInitializer,
 			kind: DefaultProxyPattern,
