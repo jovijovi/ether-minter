@@ -1,4 +1,4 @@
-const {ethers} = require('hardhat');
+import {ethers, upgrades} from 'hardhat';
 import {expect} from 'chai';
 import {BigNumber, Signer, Wallet} from 'ethers';
 import {Confirmations, StatusSuccessful} from '../../src/contracts/Avatar/abi/params';
@@ -8,6 +8,15 @@ describe("NFT Contract", function () {
 	const mockTokenId1 = 1;
 	const mockMaxSupply = 5;
 	const defaultMaxSupply = 1000;
+
+	// Contract proxy pattern
+	const proxyPattern = 'transparent';
+
+	// Contract initializer
+	const contractInitializer = '__Avatar_init';
+
+	// Polling interval (Unit: milliseconds)
+	const pollingInterval = 1000;
 
 	const contractName = "Avatar";
 	const nftName = "AvatarNFT"
@@ -43,7 +52,7 @@ describe("NFT Contract", function () {
 	}
 
 	async function attachContract(name: string, address: string): Promise<Avatar> {
-		const contractFactory = await ethers.getContractFactory(name);
+		const contractFactory: Avatar__factory = await ethers.getContractFactory(name) as Avatar__factory;
 		return contractFactory.attach(address);
 	}
 
@@ -62,7 +71,13 @@ describe("NFT Contract", function () {
 	// Deploy NFT contract
 	it("deploy", async function () {
 		const contractFactory = await ethers.getContractFactory(contractName);
-		const contract = await contractFactory.deploy(nftName, nftSymbol, nftBaseTokenURI, defaultMaxSupply, []);
+		const contract = await upgrades.deployProxy(contractFactory,
+			[nftName, nftSymbol, nftBaseTokenURI, defaultMaxSupply, []],
+			{
+				initializer: contractInitializer,
+				kind: proxyPattern,
+				pollingInterval: pollingInterval,
+			});
 		contractAddress = contract.address;
 		console.debug("## Contract address=", contractAddress);
 		console.debug("## Contract signer=", await contract.signer.getAddress());
