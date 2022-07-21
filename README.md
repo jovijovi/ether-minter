@@ -7,6 +7,7 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 ## Features
 
 - [Avatar NFT contract](./contracts/Avatar)
+  - Upgradeable 
 - NFT Minter APIs
   - Mint NFT by random minter
   - Gas price circuit breaker
@@ -30,8 +31,15 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
 ## Contract Dependencies
 
-- @openzeppelin/contracts: [`4.7.0`](https://www.npmjs.com/package/@openzeppelin/contracts/v/4.7.0)
-- erc721a: [`4.2.0`](https://www.npmjs.com/package/erc721a/v/4.2.0)
+### Upgradeable Contract
+
+- @openzeppelin/contracts-upgradeable [`4.7.1`](https://www.npmjs.com/package/@openzeppelin/contracts-upgradeable/v/4.7.1)
+- erc721a-upgradeable [`4.2.0`](https://www.npmjs.com/package/erc721a-upgradeable/v/4.2.0)
+
+### Immutable Contract
+
+- @openzeppelin/contracts [`4.7.1`](https://www.npmjs.com/package/@openzeppelin/contracts/v/4.7.1)
+- erc721a [`4.2.0`](https://www.npmjs.com/package/erc721a/v/4.2.0)
 
 ## Quick Guide
 
