@@ -491,7 +491,6 @@ export async function BalanceOf(req, res) {
 export async function BatchTransfer(req, res) {
 	if (!req.body ||
 		!req.body.contractAddress ||
-		!req.body.pk ||
 		!req.body.fromAddress ||
 		!req.body.toAddress ||
 		!req.body.fromTokenId ||
@@ -533,7 +532,6 @@ export async function BatchTransfer(req, res) {
 export async function BatchTransferToN(req, res) {
 	if (!req.body ||
 		!req.body.contractAddress ||
-		!req.body.pk ||
 		!req.body.fromAddress ||
 		!req.body.toAddress ||
 		!req.body.tokenIds

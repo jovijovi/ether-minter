@@ -27,6 +27,7 @@ export namespace customConfig {
 		apiResponseCode: any
 		randomMinter: boolean
 		minterList: Wallet[]
+		vaultList: Wallet[]
 	}
 
 	export class CustomConfig {
@@ -65,5 +66,14 @@ export namespace customConfig {
 		}
 
 		throw new Error(`GetMintRspCode Failed, invalid config`);
+	}
+
+	// GetVaultList returns vault list
+	export function GetVaultList(): Wallet[] {
+		if (!customConfig.mint || !customConfig.mint.vaultList) {
+			throw new Error(`GetVaultKeyStoreSK Failed, invalid config`);
+		}
+
+		return customConfig.mint.vaultList;
 	}
 }
