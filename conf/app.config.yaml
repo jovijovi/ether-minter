@@ -72,6 +72,13 @@ custom:
       - address: 'MINTER_2_ADDRESS'
         keyStoreSK: ''
 
+    # Vault List
+    vaultList:
+      - address: 'VAULT_1_ADDRESS'
+        keyStoreSK: ''
+      - address: 'VAULT_2_ADDRESS'
+        keyStoreSK: ''
+
   # Default network
   defaultNetwork:
     # Chain name

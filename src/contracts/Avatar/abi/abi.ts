@@ -6,9 +6,16 @@ import {core} from '@jovijovi/ether-core';
 import {customConfig} from '../../../config';
 import {GetContract} from './common';
 import {GetMinter} from './minter';
-import {KeystoreTypeContractOwner, KeystoreTypeMinter, MintQuantity, StatusSuccessful} from './params';
+import {
+	KeystoreTypeContractOwner,
+	KeystoreTypeMinter,
+	KeystoreTypeVault,
+	MintQuantity,
+	StatusSuccessful
+} from './params';
 import {GasPriceCircuitBreaker} from './breaker';
 import {CheckTopics} from './topics';
+import {GetVaultKeyStoreSK} from './vault';
 
 // GetTotalSupply returns NFT contract total supply
 export async function GetTotalSupply(address: string): Promise<any> {
@@ -406,10 +413,11 @@ export async function BalanceOf(address: string, owner: string) {
 }
 
 // Batch tokens transfer from 1 to 1
-export async function BatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
+export async function BatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string, pk?: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
-	const contract = GetContract(address, pk);
+	// Get the pk from keystore if it's undefined
+	const contract = pk ? GetContract(address, pk) : GetContract(address, await keystore.InspectKeystorePK(from, KeystoreTypeVault, GetVaultKeyStoreSK(from)));
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
@@ -453,10 +461,11 @@ export async function BatchTransfer(address: string, from: string, to: string, f
 }
 
 // Batch tokens transfer from 1 to N
-export async function BatchTransferToN(address: string, from: string, to: string[], tokenIds: string[], pk: string, reqId?: string): Promise<any> {
+export async function BatchTransferToN(address: string, from: string, to: string[], tokenIds: string[], pk?: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
-	const contract = GetContract(address, pk);
+	// Get the pk from keystore if it's undefined
+	const contract = pk ? GetContract(address, pk) : GetContract(address, await keystore.InspectKeystorePK(from, KeystoreTypeVault, GetVaultKeyStoreSK(from)));
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
