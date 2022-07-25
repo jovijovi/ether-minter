@@ -6,13 +6,15 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
 ## Features
 
-- [Avatar NFT contract](./contracts/Avatar)
-  - Upgradeable 
+- Avatar NFT contracts
+  - [Avatar Contract (Immutable)](./contracts/Avatar)
+  - [Avatar-Upgradeable Contract](./contracts/AvatarUpgradeable)
 - NFT Minter APIs
   - Mint NFT by random minter
   - Gas price circuit breaker
   - Batch mint/transfer/burn NFTs
-  - Deploy contract by API
+  - Deploy upgradeable/immutable contract
+  - Support proxy contract (ERC-1967)
 - API authorization via 2FA token
 - RESTFul APIs for the Ethereum ecosystem
 - Microservice run in Docker
@@ -34,7 +36,7 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 ### Upgradeable Contract
 
 - @openzeppelin/contracts-upgradeable [`4.7.1`](https://www.npmjs.com/package/@openzeppelin/contracts-upgradeable/v/4.7.1)
-- erc721a-upgradeable [`4.2.0`](https://www.npmjs.com/package/erc721a-upgradeable/v/4.2.0)
+- erc721a-upgradeable [`4.2.1`](https://www.npmjs.com/package/erc721a-upgradeable/v/4.2.1)
 
 ### Immutable Contract
 
@@ -100,6 +102,7 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 ## Roadmap
 
 - Documents
+- Upgradeable contract
 
 ## License
 
