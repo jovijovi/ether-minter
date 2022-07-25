@@ -10,6 +10,7 @@ export const Confirmations = 1;
 // KeyStore type
 export const KeystoreTypeMinter = 'minter';
 export const KeystoreTypeContractOwner = 'owner';
+export const KeystoreTypeVault = 'vault';
 
 // Mint quantity by default
 export const MintQuantity = 1;
