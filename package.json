@@ -19,6 +19,7 @@
   "scripts": {
     "compile": "yarn hardhat compile",
     "deploy": "hardhat run ./scripts/deploy.ts --network custom",
+    "deploy-upgradeable": "hardhat run ./scripts/deploy-upgradeable.ts --network custom",
     "flatten": "hardhat flatten ${CONTRACT_SRC} > ${CONTRACT_DST}",
     "remixd": "remixd -s ./contracts --remix-ide https://remix.ethereum.org",
     "clean": "yarn hardhat clean && rm -rf ./dist && rm -rf ./cache",
