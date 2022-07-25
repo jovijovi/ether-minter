@@ -19,7 +19,7 @@ import {GetVaultKeyStoreSK} from './vault';
 
 // GetTotalSupply returns NFT contract total supply
 export async function GetTotalSupply(address: string): Promise<any> {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	const totalSupply = await contract.totalSupply();
 
 	const provider = network.MyProvider.Get();
@@ -38,7 +38,7 @@ export async function GetTotalSupply(address: string): Promise<any> {
 // EstimateGasOfTransferNFT returns estimate Gas of transfer NFT tx. (Uint: Wei)
 export async function EstimateGasOfTransferNFT(address: string, from: string, to: string, tokenId: number): Promise<string> {
 	const provider = network.MyProvider.Get();
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	const price = await provider.getGasPrice();
 	const gas = await contract.estimateGas.transferFrom(from, to, tokenId);
 	return gas.mul(price).toString();
@@ -47,7 +47,7 @@ export async function EstimateGasOfTransferNFT(address: string, from: string, to
 // EstimateGasOfBatchTransfer returns estimate Gas of BatchTransfer (1 to 1). (Uint: Wei)
 export async function EstimateGasOfBatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string): Promise<string> {
 	const provider = network.MyProvider.Get();
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	const price = await provider.getGasPrice();
 	const gas = await contract.estimateGas.batchTransfer(from, to, fromTokenId, toTokenId);
 	return gas.mul(price).toString();
@@ -56,7 +56,7 @@ export async function EstimateGasOfBatchTransfer(address: string, from: string, 
 // EstimateGasOfBatchTransferN returns estimate gas of BatchTransferN (1 to N). (Uint: Wei)
 export async function EstimateGasOfBatchTransferN(address: string, from: string, to: string[], tokenIds: string[]): Promise<string> {
 	const provider = network.MyProvider.Get();
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	const price = await provider.getGasPrice();
 	const gas = await contract.estimateGas.batchTransferToN(from, to, tokenIds);
 	return gas.mul(price).toString();
@@ -68,7 +68,7 @@ export async function MintTo(address: string, to: string, quantity: number, reqI
 	const provider = network.MyProvider.Get();
 	const minter = GetMinter(customConfig.GetMint().randomMinter);
 	const pk = await keystore.InspectKeystorePK(minter.address.toLowerCase(), KeystoreTypeMinter, minter.keyStoreSK);
-	const contract = GetContract(address, pk);
+	const contract = await GetContract(address, pk);
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
@@ -130,7 +130,7 @@ async function mintForCreator(address: string, to: string, contentHashList: stri
 	const provider = network.MyProvider.Get();
 	const minter = GetMinter(customConfig.GetMint().randomMinter);
 	const pk = await keystore.InspectKeystorePK(minter.address.toLowerCase(), KeystoreTypeMinter, minter.keyStoreSK);
-	const contract = GetContract(address, pk);
+	const contract = await GetContract(address, pk);
 
 	// Step 2. Check if content hash exists
 	const duplicateContentHash: string[] = [];
@@ -253,7 +253,7 @@ export async function GetMintReceipt(txHash: string, reqId?: string): Promise<an
 
 // Get tokenId by content hash
 export async function GetTokenIdByContentHash(address: string, contentHash: string): Promise<any> {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	if (!await contract.contentHashExists(contentHash)) {
 		return {
 			code: customConfig.GetMintRspCode().NOTFOUND,
@@ -271,7 +271,7 @@ export async function GetTokenIdByContentHash(address: string, contentHash: stri
 
 // Get contract info
 export async function GetContractInfo(address: string): Promise<any> {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	const name = await contract.name();
 	const symbol = await contract.symbol();
 	const totalSupply = await contract.totalSupply();
@@ -295,7 +295,7 @@ export async function GetContractInfo(address: string): Promise<any> {
 
 // Get token info
 export async function GetTokenInfo(address: string, tokenId: string): Promise<any> {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	if (!await contract.exists(tokenId)) {
 		return {
 			code: customConfig.GetMintRspCode().NOTFOUND,
@@ -314,7 +314,7 @@ export async function GetTokenInfo(address: string, tokenId: string): Promise<an
 
 // Get token content hash
 export async function GetTokenContentHash(address: string, tokenId: string): Promise<any> {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	if (!await contract.exists(tokenId)) {
 		return {
 			code: customConfig.GetMintRspCode().NOTFOUND,
@@ -332,7 +332,7 @@ export async function GetTokenContentHash(address: string, tokenId: string): Pro
 
 // Get tokenURI
 export async function GetTokenURI(address: string, tokenId: string): Promise<any> {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	if (!await contract.exists(tokenId)) {
 		return {
 			code: customConfig.GetMintRspCode().NOTFOUND,
@@ -350,7 +350,7 @@ export async function GetTokenURI(address: string, tokenId: string): Promise<any
 
 // Get symbol
 export async function GetSymbol(address: string) {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	return {
 		code: customConfig.GetMintRspCode().OK,
 		data: {
@@ -361,7 +361,7 @@ export async function GetSymbol(address: string) {
 
 // Get contract owner
 export async function GetContractOwner(address: string) {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	return {
 		code: customConfig.GetMintRspCode().OK,
 		data: {
@@ -372,7 +372,7 @@ export async function GetContractOwner(address: string) {
 
 // Get maxSupply
 export async function GetMaxSupply(address: string) {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	return {
 		code: customConfig.GetMintRspCode().OK,
 		data: {
@@ -383,7 +383,7 @@ export async function GetMaxSupply(address: string) {
 
 // Get owner of NFT by tokenId
 export async function OwnerOf(address: string, tokenId: string) {
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	if (!await contract.exists(tokenId)) {
 		return {
 			code: customConfig.GetMintRspCode().NOTFOUND,
@@ -402,7 +402,7 @@ export async function OwnerOf(address: string, tokenId: string) {
 // Get balance of NFT owner
 export async function BalanceOf(address: string, owner: string) {
 	auditor.Check(utils.isAddress(owner), 'invalid owner address');
-	const contract = GetContract(address);
+	const contract = await GetContract(address);
 	const balance = await contract.balanceOf(owner);
 	return {
 		code: customConfig.GetMintRspCode().OK,
@@ -417,7 +417,7 @@ export async function BatchTransfer(address: string, from: string, to: string, f
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
 	// Get the pk from keystore if it's undefined
-	const contract = pk ? GetContract(address, pk) : GetContract(address, await keystore.InspectKeystorePK(from, KeystoreTypeVault, GetVaultKeyStoreSK(from)));
+	const contract = pk ? await GetContract(address, pk) : await GetContract(address, await keystore.InspectKeystorePK(from, KeystoreTypeVault, GetVaultKeyStoreSK(from)));
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
@@ -465,7 +465,7 @@ export async function BatchTransferToN(address: string, from: string, to: string
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
 	// Get the pk from keystore if it's undefined
-	const contract = pk ? GetContract(address, pk) : GetContract(address, await keystore.InspectKeystorePK(from, KeystoreTypeVault, GetVaultKeyStoreSK(from)));
+	const contract = pk ? await GetContract(address, pk) : await GetContract(address, await keystore.InspectKeystorePK(from, KeystoreTypeVault, GetVaultKeyStoreSK(from)));
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
@@ -512,7 +512,7 @@ export async function BatchTransferToN(address: string, from: string, to: string
 export async function BatchBurn(address: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
 	const provider = network.MyProvider.Get();
-	const contract = GetContract(address, pk);
+	const contract = await GetContract(address, pk);
 	const owner = core.GetWallet(pk).address;
 
 	// Step 2. Check gas price
@@ -568,7 +568,7 @@ export async function SetMaxSupply(address: string, maxSupply: number, reqId?: s
 		}
 	}
 	const pk = await keystore.InspectKeystorePK(contractOwner, KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
-	const contract = GetContract(address, pk);
+	const contract = await GetContract(address, pk);
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
@@ -623,7 +623,7 @@ export async function SetBaseTokenURI(address: string, baseTokenURI: string, req
 			msg: "Not found contract owner SK",
 		}
 	}
-	const contract = GetContract(address, await keystore.InspectKeystorePK(
+	const contract = await GetContract(address, await keystore.InspectKeystorePK(
 		contractOwner, KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK));
 
 	// Step 2. Check gas price
