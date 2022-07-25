@@ -22,6 +22,12 @@ export namespace Cache {
 		ttl: 1000 * 60,
 	});
 
+	// CacheProxyContractAddress cache of proxy contract address, ttl is 24 hour
+	export const CacheProxyContractAddress = cacheSet.New("proxyContractAddress", {
+		max: 1000,
+		ttl: 1000 * 60 * 60 * 24,
+	});
+
 	export function MemCache(name: string, ttl: number = 1000 * 60, max = 10): LRUCache<any, any> {
 		return cacheSet.New(name, {
 			max: max,   // 10 by default
