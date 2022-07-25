@@ -1,5 +1,6 @@
-// Contract name by default
-export const ContractName = 'Avatar';
+// Contract name
+export const ContractNameImmutable = 'Avatar';
+export const ContractNameUpgradeable = 'AvatarUpgradeable'
 
 // Tx status successful
 export const StatusSuccessful = 1;

@@ -1,36 +1,78 @@
 import {ethers, upgrades} from 'hardhat';
 import {BigNumber, utils} from 'ethers';
+import {JsonRpcProvider} from '@ethersproject/providers';
 import {core} from '@jovijovi/ether-core';
 import {network} from '@jovijovi/ether-network';
 import {log} from '@jovijovi/pedrojs-common';
 import {keystore} from '@jovijovi/ether-keystore';
 import {
-	ContractName,
+	ContractNameImmutable,
+	ContractNameUpgradeable,
 	DefaultContractInitializer,
 	DefaultPollingInterval,
 	DefaultProxyPattern,
 	KeystoreTypeContractOwner
 } from './params';
-import {Avatar, Avatar__factory} from '../../../../typechain-types';
+import {Avatar, Avatar__factory, AvatarUpgradeable, AvatarUpgradeable__factory} from '../../../../typechain-types';
 import {GasPriceCircuitBreaker} from './breaker';
 import {customConfig} from '../../../config';
+import {GetOperators} from './minter';
 
-function getOperators(): string[] {
-	// If enable random minter, returns all operators
-	if (customConfig.GetMint().randomMinter) {
-		const operators: string[] = [];
-		for (const minter of customConfig.GetMint().minterList) {
-			operators.push(minter.address);
-		}
-		return operators;
+// Deploy contract options
+type DeployContractOptions = {
+	contractName: string;
+	contractOwnerPK: string;
+	name: string;
+	symbol: string;
+	baseTokenURI: string;
+	maxSupply: number;
+	finalGasPrice: BigNumber;
+	operators: string[];
+	provider: JsonRpcProvider;
+	isUpgradeable: boolean;
+}
+
+// deployImmutableContract deploys immutable contract
+async function deployImmutableContract(opts: DeployContractOptions): Promise<Avatar> {
+	const factory: Avatar__factory = await ethers.getContractFactory(opts.contractName, core.GetWallet(opts.contractOwnerPK)) as Avatar__factory;
+	return await factory.deploy(opts.name, opts.symbol, opts.baseTokenURI, opts.maxSupply, opts.operators, {
+		gasPrice: opts.finalGasPrice,
+	});
+}
+
+// deployUpgradeableContract deploys upgradeable contract
+async function deployUpgradeableContract(opts: DeployContractOptions): Promise<AvatarUpgradeable> {
+	// Deploy contracts by custom gasPrice
+	// Wrap the provider to override fee data. ref: https://github.com/OpenZeppelin/openzeppelin-upgrades/issues/85
+	const fallbackProvider = new ethers.providers.FallbackProvider([opts.provider], 1);
+	const FeeData = {
+		maxFeePerGas: null,
+		maxPriorityFeePerGas: null,
+		gasPrice: opts.finalGasPrice,
+	};
+	fallbackProvider.getFeeData = async () => FeeData;
+
+	// Deploy upgradeable contract via the transparent proxy pattern
+	const factory: AvatarUpgradeable__factory = await ethers.getContractFactory(opts.contractName,
+		core.GetWallet(opts.contractOwnerPK).connect(fallbackProvider)) as AvatarUpgradeable__factory;
+	return await upgrades.deployProxy(factory,
+		[opts.name, opts.symbol, opts.baseTokenURI, opts.maxSupply, opts.operators],
+		{
+			initializer: DefaultContractInitializer,
+			kind: DefaultProxyPattern,
+			pollingInterval: DefaultPollingInterval,
+		}) as AvatarUpgradeable;
+}
+
+async function deployContract(opts: DeployContractOptions): Promise<Avatar | AvatarUpgradeable> {
+	if (!opts.isUpgradeable) {
+		return await deployImmutableContract(opts);
 	}
-
-	// Else returns 1st operator
-	return [customConfig.GetMint().minterList[0].address];
+	return await deployUpgradeableContract(opts);
 }
 
 // Deploy contract
-export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, gasPriceC: number, reqId?: string): Promise<any> {
+export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, gasPriceC: number, isUpgradeable = false, reqId?: string): Promise<any> {
 	// Step 1. Get provider
 	const provider = network.MyProvider.Get();
 
@@ -58,26 +100,18 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 	const contractOwnerPK = pk ? pk : await keystore.InspectKeystorePK(customConfig.GetMint().contractOwner.address,
 		KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
 
-	// Deploy contracts by custom gasPrice
-	// Wrap the provider to override fee data. ref: https://github.com/OpenZeppelin/openzeppelin-upgrades/issues/85
-	const fallbackProvider = new ethers.providers.FallbackProvider([provider], 1);
-	const FeeData = {
-		maxFeePerGas: null,
-		maxPriorityFeePerGas: null,
-		gasPrice: finalGasPrice,
-	};
-	fallbackProvider.getFeeData = async () => FeeData;
-
-	// Deploy upgradeable contract via the transparent proxy pattern
-	const factory: Avatar__factory = await ethers.getContractFactory(ContractName,
-		core.GetWallet(contractOwnerPK).connect(fallbackProvider)) as Avatar__factory;
-	const contract = await upgrades.deployProxy(factory,
-		[name, symbol, baseTokenURI, maxSupply, getOperators()],
-		{
-			initializer: DefaultContractInitializer,
-			kind: DefaultProxyPattern,
-			pollingInterval: DefaultPollingInterval,
-		}) as Avatar;
+	const contract = await deployContract({
+		isUpgradeable: isUpgradeable,
+		contractName: isUpgradeable ? ContractNameUpgradeable : ContractNameImmutable,
+		contractOwnerPK: contractOwnerPK,
+		baseTokenURI: baseTokenURI,
+		name: name,
+		symbol: symbol,
+		maxSupply: maxSupply,
+		finalGasPrice: finalGasPrice,
+		operators: GetOperators(),
+		provider: provider,
+	})
 
 	if (isWait) {
 		log.RequestId(reqId).info("Contract(%s) deploying... Name=%s, Symbol=%s, BaseTokenURI=%s, GasPrice=%sGwei",

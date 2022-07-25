@@ -627,6 +627,7 @@ export async function Deploy(req, res) {
 			req.body.pk,    // Contract owner PK (Optional)
 			req.body.sync,  // true: sync; false: async (Optional)
 			req.body.gasPriceC, // GasPrice coefficient (Optional)
+			req.body.upgradeable, // true: deploy upgradeable contract; false: deploy immutable contract (Optional)
 			req[KEY]);
 
 		const rsp = MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, result)

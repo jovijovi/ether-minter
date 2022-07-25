@@ -14,3 +14,18 @@ export function GetMinter(randomMinter = false): customConfig.Wallet {
 
 	return customConfig.GetMint().minterList[index];
 }
+
+// GetOperators returns operators
+export function GetOperators(): string[] {
+	// If enable random minter, returns all operators
+	if (customConfig.GetMint().randomMinter) {
+		const operators: string[] = [];
+		for (const minter of customConfig.GetMint().minterList) {
+			operators.push(minter.address);
+		}
+		return operators;
+	}
+
+	// Else returns 1st operator
+	return [customConfig.GetMint().minterList[0].address];
+}
