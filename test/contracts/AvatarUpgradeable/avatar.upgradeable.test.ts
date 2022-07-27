@@ -4,7 +4,7 @@ import {BigNumber, Signer, Wallet} from 'ethers';
 import {Confirmations, StatusSuccessful} from '../../../src/contracts/Avatar/abi/params';
 import {AvatarUpgradeable, AvatarUpgradeable__factory} from '../../../typechain-types';
 
-describe("NFT Contract", function () {
+describe("AvatarUpgradeable Contract", function () {
 	const mockTokenId1 = 1;
 	const mockMaxSupply = 5;
 	const defaultMaxSupply = 1000;
@@ -79,9 +79,19 @@ describe("NFT Contract", function () {
 				pollingInterval: pollingInterval,
 			});
 		contractAddress = contract.address;
-		console.debug("## Contract address=", contractAddress);
+		console.debug("## ProxyContract address=", contractAddress);
 		console.debug("## Contract signer=", await contract.signer.getAddress());
 		console.debug("## Contract owner=", await contract.owner());
+	})
+
+	// Upgrade logical contract
+	// If the logic contract has not changed, the upgrade operation will not upgrade the logic contract.
+	it("upgrade", async function () {
+		const factory = await ethers.getContractFactory(contractName);
+		console.debug("## ProxyContract address=", contractAddress);
+		console.debug("## Upgrading logical contract...");
+		const newVersionContract = await upgrades.upgradeProxy(contractAddress, factory);
+		console.debug("## Logical contract upgraded. TxHash=", newVersionContract.deployTransaction.hash);
 	})
 
 	// GET NFT name
