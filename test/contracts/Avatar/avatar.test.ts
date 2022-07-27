@@ -4,7 +4,7 @@ import {BigNumber, Signer, Wallet} from 'ethers';
 import {Confirmations, StatusSuccessful} from '../../../src/contracts/Avatar/abi/params';
 import {Avatar, Avatar__factory} from '../../../typechain-types';
 
-describe("NFT Contract", function () {
+describe("Avatar Contract", function () {
 	const mockTokenId1 = 1;
 	const mockMaxSupply = 5;
 	const defaultMaxSupply = 1000;
