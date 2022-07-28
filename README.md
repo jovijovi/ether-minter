@@ -35,12 +35,12 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
 ### Upgradeable Contract
 
-- @openzeppelin/contracts-upgradeable [`4.7.1`](https://www.npmjs.com/package/@openzeppelin/contracts-upgradeable/v/4.7.1)
+- @openzeppelin/contracts-upgradeable [`4.7.2`](https://www.npmjs.com/package/@openzeppelin/contracts-upgradeable/v/4.7.2)
 - erc721a-upgradeable [`4.2.1`](https://www.npmjs.com/package/erc721a-upgradeable/v/4.2.1)
 
 ### Immutable Contract
 
-- @openzeppelin/contracts [`4.7.1`](https://www.npmjs.com/package/@openzeppelin/contracts/v/4.7.1)
+- @openzeppelin/contracts [`4.7.2`](https://www.npmjs.com/package/@openzeppelin/contracts/v/4.7.2)
 - erc721a [`4.2.0`](https://www.npmjs.com/package/erc721a/v/4.2.0)
 
 ## Quick Guide
