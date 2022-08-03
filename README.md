@@ -30,8 +30,8 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
 ## Contract Dependencies
 
-- @openzeppelin/contracts: [`4.7.0`](https://www.npmjs.com/package/@openzeppelin/contracts/v/4.7.0)
-- erc721a: [`4.1.0`](https://www.npmjs.com/package/erc721a/v/4.1.0)
+- @openzeppelin/contracts: [`4.7.1`](https://www.npmjs.com/package/@openzeppelin/contracts/v/4.7.1)
+- erc721a: [`4.2.0`](https://www.npmjs.com/package/erc721a/v/4.2.0)
 
 ## Quick Guide
 
