@@ -8,6 +8,7 @@ import {ContractName, KeystoreTypeContractOwner} from './params';
 import {Avatar, Avatar__factory} from '../../../../typechain-types';
 import {GasPriceCircuitBreaker} from './breaker';
 import {customConfig} from '../../../config';
+import {GetContractOwnerKeyStoreSK, GetDefaultContractOwner} from './owner';
 
 function getOperators(): string[] {
 	// If enable random minter, returns all operators
@@ -24,7 +25,7 @@ function getOperators(): string[] {
 }
 
 // Deploy contract
-export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, gasPriceC: number, reqId?: string): Promise<any> {
+export async function Deploy(name: string, symbol: string, baseTokenURI: string, maxSupply: number, pk: string, isWait = true, gasPriceC: number, contractOwner?: string, reqId?: string): Promise<any> {
 	// Step 1. Get provider
 	const provider = network.MyProvider.Get();
 
@@ -50,8 +51,20 @@ export async function Deploy(name: string, symbol: string, baseTokenURI: string,
 
 	// Step 3. Deploy
 	const operators = getOperators();
-	const contractOwnerPK = pk ? pk : await keystore.InspectKeystorePK(customConfig.GetMint().contractOwner.address,
-		KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
+	const owner = contractOwner ? contractOwner : GetDefaultContractOwner().address;
+	const contractOwnerPK = pk ? pk : await keystore.InspectKeystorePK(owner,
+		KeystoreTypeContractOwner, GetContractOwnerKeyStoreSK(owner));
+
+	if (contractOwnerPK && owner) {
+		if (utils.getAddress(utils.computeAddress(contractOwnerPK)) !== utils.getAddress(owner)) {
+			log.RequestId(reqId).error("Contract owner address(%s) not match PK", owner);
+			return {
+				code: customConfig.GetMintRspCode().ERROR,
+				msg: "Contract owner address not match PK",
+			};
+		}
+	}
+
 	const factory: Avatar__factory = await ethers.getContractFactory(ContractName, core.GetWallet(contractOwnerPK)) as Avatar__factory;
 	const contract: Avatar = await factory.deploy(name, symbol, baseTokenURI, maxSupply, operators, {
 		gasPrice: finalGasPrice,

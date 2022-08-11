@@ -13,7 +13,7 @@ export namespace customConfig {
 	}
 
 	class Mint {
-		contractOwner: Wallet
+		contractOwner: Wallet[]
 		gasPrice: {
 			upper: {
 				threshold: string
@@ -75,5 +75,14 @@ export namespace customConfig {
 		}
 
 		return customConfig.mint.vaultList;
+	}
+
+	// GetContractOwnerList returns contract owner list
+	export function GetContractOwnerList(): Wallet[] {
+		if (!customConfig.mint || !customConfig.mint.contractOwner) {
+			throw new Error(`GetVaultKeyStoreSK Failed, invalid config`);
+		}
+
+		return customConfig.mint.contractOwner;
 	}
 }

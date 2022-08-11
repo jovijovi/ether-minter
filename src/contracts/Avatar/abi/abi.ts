@@ -16,6 +16,7 @@ import {
 import {GasPriceCircuitBreaker} from './breaker';
 import {CheckTopics} from './topics';
 import {GetVaultKeyStoreSK} from './vault';
+import {GetContractOwnerKeyStoreSK, MatchContractOwner} from './owner';
 
 // GetTotalSupply returns NFT contract total supply
 export async function GetTotalSupply(address: string): Promise<any> {
@@ -559,16 +560,9 @@ export async function BatchBurn(address: string, fromTokenId: string, toTokenId:
 // Set maxSupply
 export async function SetMaxSupply(address: string, maxSupply: number, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
-	const contractOwner = (await GetContractOwner(address)).data.owner.toLowerCase();
-	if (contractOwner !== customConfig.GetMint().contractOwner.address.toLowerCase()) {
-		log.RequestId(reqId).warn("Not found contract owner(%s) SK", contractOwner);
-		return {
-			code: customConfig.GetMintRspCode().NOTFOUND,
-			msg: "Not found contract owner SK",
-		}
-	}
-	const pk = await keystore.InspectKeystorePK(contractOwner, KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK);
-	const contract = GetContract(address, pk);
+	const contractOwner = await MatchContractOwner(address);
+	const contract = GetContract(address, await keystore.InspectKeystorePK(
+		contractOwner, KeystoreTypeContractOwner, GetContractOwnerKeyStoreSK(contractOwner)));
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
@@ -615,16 +609,9 @@ export async function SetMaxSupply(address: string, maxSupply: number, reqId?: s
 // Set baseTokenURI
 export async function SetBaseTokenURI(address: string, baseTokenURI: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
-	const contractOwner = (await GetContractOwner(address)).data.owner.toLowerCase();
-	if (contractOwner !== customConfig.GetMint().contractOwner.address.toLowerCase()) {
-		log.RequestId(reqId).warn("Not found contract owner(%s) SK", contractOwner);
-		return {
-			code: customConfig.GetMintRspCode().NOTFOUND,
-			msg: "Not found contract owner SK",
-		}
-	}
+	const contractOwner = await MatchContractOwner(address);
 	const contract = GetContract(address, await keystore.InspectKeystorePK(
-		contractOwner, KeystoreTypeContractOwner, customConfig.GetMint().contractOwner.keyStoreSK));
+		contractOwner, KeystoreTypeContractOwner, GetContractOwnerKeyStoreSK(contractOwner)));
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
