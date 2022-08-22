@@ -605,6 +605,41 @@ export async function BatchBurn(req, res) {
 	return;
 }
 
+// Burn
+export async function Burn(req, res) {
+	if (!req.body ||
+		!req.body.contractAddress ||
+		!req.body.tokenId
+	) {
+		return MyResponse.BadRequest(res);
+	}
+
+	try {
+		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
+
+		const result = await ABI.Burn(
+			req.body.contractAddress,   // Contract address
+			req.body.tokenId,           // TokenId
+			req.body.pk,                // Token owner PK (Optional)
+			req[KEY]);
+
+		res.send(result);
+
+		log.RequestId(req[KEY]).info("Result=\n%o", result);
+	} catch (e) {
+		log.RequestId(req[KEY]).error("Burn failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
+	}
+
+	return;
+}
+
 // Deploy
 export async function Deploy(req, res) {
 	if (!req.body ||
