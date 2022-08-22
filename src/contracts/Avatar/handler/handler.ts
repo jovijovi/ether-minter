@@ -15,6 +15,7 @@ function v3APIs(router: core.Express) {
 	router.post('/api/v3/contracts/maxSupply', API.SetMaxSupply);
 	router.post('/api/v3/contracts/baseTokenURI', API.SetBaseTokenURI);
 	router.post('/api/v3/contracts/mint', API.MintForCreator);
+	router.post('/api/v3/contracts/burn', API.Burn);
 	router.post('/api/v3/contracts/batch/mint', API.MintTo);
 	router.post('/api/v3/nft/estimate/batch/transfer', API.EstimateGasOfBatchTransfer);
 	router.post('/api/v3/nft/estimate/batch/transfer2n', API.EstimateGasOfBatchTransferToN);

@@ -653,3 +653,67 @@ export async function SetBaseTokenURI(address: string, baseTokenURI: string, req
 		}
 	};
 }
+
+// Burn token
+export async function Burn(address: string, tokenId: string, pk?: string, reqId?: string): Promise<any> {
+	// Step 1. Get contract by PK
+	const provider = network.MyProvider.Get();
+
+	// Get token owner address
+	const rsp = await OwnerOf(address, tokenId);
+	if (rsp.code !== customConfig.GetMintRspCode().OK) {
+		return rsp;
+	}
+	// 'from' is token owner
+	const owner = rsp.data.owner;
+
+	// Get the pk from keystore if it's undefined
+	const contract = pk ? GetContract(address, pk) : GetContract(address, await keystore.InspectKeystorePK(owner, KeystoreTypeVault, GetVaultKeyStoreSK(owner)));
+	// Check if token owner matched
+	if (pk && utils.getAddress(core.GetWallet(pk).address) !== utils.getAddress(owner)) {
+		return {
+			code: customConfig.GetMintRspCode().ERROR,
+			msg: "Invalid token owner PK",
+		}
+	}
+
+	// Step 2. Check gas price
+	// Get gas price (Unit: Wei)
+	const gasPrice = await provider.getGasPrice();
+
+	// Check gasPrice by circuit breaker
+	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
+		log.RequestId(reqId).warn("Burn request terminated due to high gas price. ContractAddress=%s, Owner=%s, TokenId=%s, GasPrice=%sGwei",
+			address, owner, tokenId, utils.formatUnits(gasPrice, "gwei"));
+		return {
+			code: customConfig.GetMintRspCode().THRESHOLD,
+			msg: "Burn request terminated due to high gas price",
+		};
+	}
+
+	// Step 3. Estimate gas
+	const estimateGas = await contract.estimateGas.burn(tokenId);
+	const gasLimit = estimateGas.mul(BigNumber.from(customConfig.GetTxConfig().gasLimitC)).div(100);
+
+	log.RequestId(reqId).info("Burning... ContractAddress=%s, Owner=%s, TokenId=%s, EstimateGas=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, owner, tokenId, estimateGas.toString(), gasLimit.toString(), utils.formatUnits(gasPrice, "gwei"));
+
+	// Step 4. Burn
+	const tx = await contract.burn(tokenId, {
+		gasPrice: gasPrice,
+		gasLimit: gasLimit,
+	});
+
+	log.RequestId(reqId).info("Burn tx committed. ContractAddress=%s, Owner=%s, ToTokenId=%s, TxHash=%s, GasLimit=%d, GasPrice=%sGwei",
+		address, owner, tokenId, tx.hash, tx.gasLimit, utils.formatUnits(tx.gasPrice ? tx.gasPrice : gasPrice, "gwei"));
+
+	// Step 5. Build response
+	return {
+		code: customConfig.GetMintRspCode().OK,
+		msg: "Burn tx committed",
+		data: {
+			"txHash": tx.hash,
+			"tx": tx,
+		}
+	};
+}
