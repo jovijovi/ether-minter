@@ -22,5 +22,6 @@
 /*.tar.gz
 /flattened
 /_dev
+/_release
 .deps
 artifacts
