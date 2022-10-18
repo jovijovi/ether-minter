@@ -23,8 +23,8 @@ An NFT minter microservice inspired by [ether-goblin](https://github.com/jovijov
 
 ## Development Environment
 
-- typescript `4.7.4`
-- node `v16.17.0`
+- typescript `4.8.4`
+- node `v16.18.0`
 - ts-node `v10.9.1`
 - yarn `v1.22.19`
 
