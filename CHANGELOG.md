@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.6.26](https://github.com/jovijovi/ether-minter/releases/tag/v0.6.26)
+
+Build:
+- (docker): Compile code in alpine
+- Bump node version from 16.17 to 16.18
+- Bump packages
+
 ## [v0.6.22](https://github.com/jovijovi/ether-minter/releases/tag/v0.6.22)
 
 Features:
