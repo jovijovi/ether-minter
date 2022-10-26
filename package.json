@@ -1,6 +1,6 @@
 {
   "name": "ether-minter",
-  "version": "0.6.26",
+  "version": "0.6.27",
   "description": "An NFT minter microservice",
   "author": "jovijovi <mageyul@hotmail.com>",
   "license": "MIT",
@@ -29,15 +29,15 @@
     "dist-run": "node ./dist/src/main/index.js"
   },
   "dependencies": {
-    "@jovijovi/ether-core": "0.5.3",
-    "@jovijovi/ether-keystore": "0.2.3",
-    "@jovijovi/ether-network": "0.3.3",
+    "@jovijovi/ether-core": "0.5.4",
+    "@jovijovi/ether-keystore": "0.2.4",
+    "@jovijovi/ether-network": "0.3.4",
     "@jovijovi/express-2fa-token": "^1.1.0",
-    "@jovijovi/pedrojs-common": "1.1.22",
-    "@jovijovi/pedrojs-network-http": "1.1.23",
+    "@jovijovi/pedrojs-common": "1.1.26",
+    "@jovijovi/pedrojs-network-http": "1.1.26",
     "@openzeppelin/contracts": "4.7.0",
     "erc721a": "4.1.0",
-    "ethers": "5.7.1"
+    "ethers": "5.7.2"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.2.0",
@@ -49,12 +49,12 @@
     "@types/chai": "4.3.3",
     "@types/chai-as-promised": "7.1.5",
     "@types/mocha": "10.0.0",
-    "@types/node": "18.11.0",
-    "@typescript-eslint/eslint-plugin": "^5.40.1",
-    "@typescript-eslint/parser": "^5.40.1",
+    "@types/node": "18.11.5",
+    "@typescript-eslint/eslint-plugin": "^5.41.0",
+    "@typescript-eslint/parser": "^5.41.0",
     "chai": "4.3.6",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^8.25.0",
+    "eslint": "^8.26.0",
     "hardhat": "2.12.0",
     "mocha": "^10.1.0",
     "solc": "0.8.9",
