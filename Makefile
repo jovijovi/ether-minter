@@ -1,7 +1,7 @@
 APP_NAME:=ether-minter
 HUB:=$(if $(HUB),$(HUB),some_docker_image_repo)
 OS:=linux
-NODE_VER=16.18
+NODE_VER=18.12
 TS_VER=$(shell tsc -v)
 ALPINE_VER:=3.16
 
