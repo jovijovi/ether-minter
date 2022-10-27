@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.6.28](https://github.com/jovijovi/ether-minter/releases/tag/v0.6.28)
+
+### Features
+- Get floating gas price by default
+- Increase verifySignature cache from 1k to 10k
+- Add cache of NFT owner, tx response and tx receipt
+
+### Build
+- Bump packages
+
 ## [v0.6.26](https://github.com/jovijovi/ether-minter/releases/tag/v0.6.26)
 
 Build:
