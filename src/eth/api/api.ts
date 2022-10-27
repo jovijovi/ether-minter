@@ -43,6 +43,7 @@ export async function getTxReceipt(req, res) {
 		}
 
 		const receipt: any = await core.GetTxReceipt(req.query.txHash);
+		Cache.CacheTxReceipt.set(req.query.txHash, receipt);
 
 		if (!receipt) {
 			return MyResponse.NotFound(res);
@@ -55,8 +56,6 @@ export async function getTxReceipt(req, res) {
 			status: receipt.status,
 			receipt: receipt,
 		}));
-
-		Cache.CacheTxReceipt.set(req.query.txHash, receipt);
 
 		log.RequestId().info("receipt=", receipt);
 	} catch (e) {
@@ -83,13 +82,12 @@ export async function getTxResponse(req, res) {
 		}
 
 		const tx = await core.GetTxResponse(req.query.txHash);
+		Cache.CacheTxResponse.set(req.query.txHash, tx);
 
 		if (!tx) {
 			return MyResponse.NotFound(res);
 		}
 		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, tx));
-
-		Cache.CacheTxResponse.set(req.query.txHash, tx);
 
 		log.RequestId().info("tx=", tx);
 	} catch (e) {
