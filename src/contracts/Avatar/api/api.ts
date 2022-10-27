@@ -444,9 +444,17 @@ export async function OwnerOf(req, res) {
 	}
 
 	try {
+		const key = Cache.CombinationKey([req.query.contractAddress, req.query.tokenId]);
+		if (Cache.CacheOwnerOfNFT.has(key)) {
+			res.send(Cache.CacheOwnerOfNFT.get(key));
+			return;
+		}
+
 		const result = await ABI.OwnerOf(req.query.contractAddress, req.query.tokenId);
 
 		res.send(result);
+
+		Cache.CacheOwnerOfNFT.set(key, result);
 
 		log.RequestId(req[KEY]).trace("Result=\n%o", result);
 	} catch (e) {

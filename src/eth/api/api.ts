@@ -66,12 +66,19 @@ export async function getTxResponse(req, res) {
 	log.RequestId().info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
+		if (Cache.CacheTxResponse.has(req.query.txHash)) {
+			res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, Cache.CacheTxResponse.get(req.query.txHash)));
+			return;
+		}
+
 		const tx = await core.GetTxResponse(req.query.txHash);
 
 		if (!tx) {
 			return MyResponse.NotFound(res);
 		}
 		res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, tx));
+
+		Cache.CacheTxResponse.set(req.query.txHash, tx);
 
 		log.RequestId().info("tx=", tx);
 	} catch (e) {
