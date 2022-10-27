@@ -14,3 +14,12 @@ export const KeystoreTypeVault = 'vault';
 
 // Mint quantity by default
 export const MintQuantity = 1;
+
+// Retry times
+export const DefaultRetryTimes = 5;
+
+// Retry min interval (in seconds)
+export const DefaultRetryMinInterval = 5;
+
+// Retry max interval (in seconds)
+export const DefaultRetryMaxInterval = DefaultRetryMinInterval * 3;
