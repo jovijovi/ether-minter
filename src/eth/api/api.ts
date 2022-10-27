@@ -27,10 +27,10 @@ export async function getTxReceipt(req, res) {
 	if (!req.query ||
 		!req.query.txHash
 	) {
+		log.RequestId().error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
-
-	log.RequestId().debug("New request query=", req.query);
+	log.RequestId().info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const receipt: any = await core.GetTxReceipt(req.query.txHash);
@@ -60,10 +60,10 @@ export async function getTxResponse(req, res) {
 	if (!req.query ||
 		!req.query.txHash
 	) {
+		log.RequestId().error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
-
-	log.RequestId().debug("New request query=", req.query);
+	log.RequestId().info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const tx = await core.GetTxResponse(req.query.txHash);
@@ -103,8 +103,10 @@ export async function getBlock(req, res) {
 	if (!req.query ||
 		!req.query.blockHash
 	) {
+		log.RequestId().error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId().info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const block = await core.GetBlock(req.query.blockHash);
@@ -124,10 +126,10 @@ export async function getBalanceOf(req, res) {
 	if (!req.query ||
 		!req.query.address
 	) {
+		log.RequestId().error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
-
-	log.RequestId().debug("New request query=", req.query);
+	log.RequestId().info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const balanceResult = await core.GetBalanceOf(req.query.address, req.query.blockHash);
@@ -147,8 +149,10 @@ export async function observer(req, res) {
 	if (!req.params ||
 		!req.params.address
 	) {
+		log.RequestId().error("Bad request, url=%o, params=%o", req.url, req.params);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId().info("New request, url=%o, params=%o", req.url, req.params);
 
 	try {
 		// Set cache ttl to 3 seconds by default
@@ -178,10 +182,10 @@ export async function transfer(req, res) {
 		!req.body.amount ||
 		!req.body.pk
 	) {
+		log.RequestId().error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
-
-	log.RequestId().debug("New request body=", req.body);
+	log.RequestId().info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
 		auditor.Check(customConfig.GetTxConfig().gasLimitC >= 100, "invalid tx gasLimitC");
@@ -226,10 +230,10 @@ export async function verifySignature(req, res) {
 		!req.body.msg ||
 		!req.body.sig
 	) {
+		log.RequestId().error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
-
-	log.RequestId().debug("New request url=%o, body=%o", req.url, req.body);
+	log.RequestId().info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
 		// Set cache, ttl: 10min, max items: 10000
@@ -263,8 +267,10 @@ export async function verifyAddress(req, res) {
 	if (!req.params ||
 		!req.params.address
 	) {
+		log.RequestId().error("Bad request, url=%o, params=%o", req.url, req.params);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId().info("New request, url=%o, params=%o", req.url, req.params);
 
 	try {
 		// Set cache, ttl: 10min, max items: 1000
@@ -307,8 +313,10 @@ export async function newWallet(req, res) {
 // New JSON wallet
 export async function newJsonWallet(req, res) {
 	if (!req.body.password) {
+		log.RequestId().error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId().info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
 		const jsonWallet = await core.NewJsonWallet(req.body.password, req.body.entropy);
@@ -324,8 +332,10 @@ export async function newJsonWallet(req, res) {
 export async function retrieveJsonWalletFromMnemonic(req, res) {
 	if (!req.body.password
 		|| !req.body.mnemonic) {
+		log.RequestId().error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId().info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
 		const jsonWallet = await core.RetrieveJsonWalletFromMnemonic(req.body.password, req.body.mnemonic);
@@ -341,8 +351,10 @@ export async function retrieveJsonWalletFromMnemonic(req, res) {
 export async function retrieveJsonWalletFromPK(req, res) {
 	if (!req.body.password
 		|| !req.body.pk) {
+		log.RequestId().error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId().info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
 		const jsonWallet = await core.RetrieveJsonWalletFromPK(req.body.password, req.body.pk);
@@ -358,8 +370,10 @@ export async function retrieveJsonWalletFromPK(req, res) {
 export async function inspectJsonWallet(req, res) {
 	if (!req.body.password
 		|| !req.body.jsonWallet) {
+		log.RequestId().error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId().info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
 		const jsonWallet = await core.InspectJsonWallet(req.body.password, req.body.jsonWallet);
