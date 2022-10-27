@@ -33,6 +33,15 @@ export async function getTxReceipt(req, res) {
 	log.RequestId().info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
+		if (Cache.CacheTxReceipt.has(req.query.txHash)) {
+			const receipt = Cache.CacheTxReceipt.get(req.query.txHash);
+			res.send(MyResponse.BuildResponse(customConfig.GetMintRspCode().OK, {
+				status: receipt.status,
+				receipt: receipt,
+			}));
+			return;
+		}
+
 		const receipt: any = await core.GetTxReceipt(req.query.txHash);
 
 		if (!receipt) {
@@ -46,6 +55,8 @@ export async function getTxReceipt(req, res) {
 			status: receipt.status,
 			receipt: receipt,
 		}));
+
+		Cache.CacheTxReceipt.set(req.query.txHash, receipt);
 
 		log.RequestId().info("receipt=", receipt);
 	} catch (e) {
