@@ -29,7 +29,14 @@ export async function GetGetTotalSupply(req, res) {
 
 		Cache.CacheTotalSupplyOfNFT.set(req.query.contractAddress, result);
 	} catch (e) {
-		return MyResponse.Error(res, e);
+		log.RequestId(req[KEY]).error("GetGetTotalSupply failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
 	}
 
 	return;
@@ -67,7 +74,14 @@ export async function EstimateGasOfTransferNFT(req, res) {
 
 		log.RequestId(req[KEY]).info("Estimate transfer NFT tx(%o) gasFee=%s", req.body, result.gasFee);
 	} catch (e) {
-		return MyResponse.Error(res, e);
+		log.RequestId(req[KEY]).error("EstimateGasOfTransferNFT failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
 	}
 
 	return;
