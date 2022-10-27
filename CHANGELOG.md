@@ -8,6 +8,7 @@
 - Add cache of NFT owner, tx response and tx receipt
 
 ### Build
+- Bump node version from 16.18 to 18.12
 - Bump packages
 
 ## [v0.6.26](https://github.com/jovijovi/ether-minter/releases/tag/v0.6.26)
