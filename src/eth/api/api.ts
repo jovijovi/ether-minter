@@ -232,8 +232,8 @@ export async function verifySignature(req, res) {
 	log.RequestId().debug("New request url=%o, body=%o", req.url, req.body);
 
 	try {
-		// Set cache, ttl: 10min, max items: 1000
-		const cache = Cache.MemCache("verifySignature", 1000 * 60 * 10, 1000);
+		// Set cache, ttl: 10min, max items: 10000
+		const cache = Cache.MemCache("verifySignature", 1000 * 60 * 10, 10000);
 
 		// Build compose key
 		const composeKey = req.body.address + req.body.msg + req.body.sig;
