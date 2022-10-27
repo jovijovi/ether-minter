@@ -11,8 +11,10 @@ export async function GetGetTotalSupply(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		// Set cache ttl to 3 seconds by default
@@ -27,7 +29,14 @@ export async function GetGetTotalSupply(req, res) {
 
 		Cache.CacheTotalSupplyOfNFT.set(req.query.contractAddress, result);
 	} catch (e) {
-		return MyResponse.Error(res, e);
+		log.RequestId(req[KEY]).error("GetGetTotalSupply failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
 	}
 
 	return;
@@ -41,8 +50,10 @@ export async function EstimateGasOfTransferNFT(req, res) {
 		!req.body.to ||
 		!req.body.tokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
 		const key = Cache.CombinationKey([req.body.address, req.body.from, req.body.to, req.body.tokenId])
@@ -61,9 +72,16 @@ export async function EstimateGasOfTransferNFT(req, res) {
 
 		Cache.CacheEstimateGasOfTransferNFT.set(key, rsp);
 
-		log.RequestId().info("Estimate transfer NFT tx(%o) gasFee=%s", req.body, result.gasFee);
+		log.RequestId(req[KEY]).info("Estimate transfer NFT tx(%o) gasFee=%s", req.body, result.gasFee);
 	} catch (e) {
-		return MyResponse.Error(res, e);
+		log.RequestId(req[KEY]).error("EstimateGasOfTransferNFT failed, error=", e);
+
+		res.send({
+			code: customConfig.GetMint().apiResponseCode.ERROR,
+			msg: e.toString(),
+		});
+
+		return;
 	}
 
 	return;
@@ -78,12 +96,12 @@ export async function EstimateGasOfBatchTransfer(req, res) {
 		!req.body.fromTokenId ||
 		!req.body.toTokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.EstimateGasOfBatchTransfer(
 			req.body.contractAddress,
 			req.body.fromAddress,
@@ -118,12 +136,12 @@ export async function EstimateGasOfBatchTransferToN(req, res) {
 		!req.body.toAddress ||
 		!req.body.tokenIds
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.EstimateGasOfBatchTransferN(
 			req.body.contractAddress,
 			req.body.fromAddress,
@@ -156,12 +174,12 @@ export async function MintTo(req, res) {
 		!req.body.toAddress ||
 		!req.body.quantity
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.MintTo(req.body.contractAddress, req.body.toAddress, req.body.quantity, req[KEY]);
 
 		res.send(result);
@@ -182,12 +200,12 @@ export async function MintForCreator(req, res) {
 		!req.body.toAddress ||
 		!req.body.contentHash
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.MintForCreator(req.body.contractAddress, req.body.toAddress, req.body.contentHash, req[KEY]);
 
 		res.send(result);
@@ -206,12 +224,12 @@ export async function GetMintStatus(req, res) {
 	if (!req.query ||
 		!req.query.txHash
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
-		log.RequestId(req[KEY]).trace("Request=\n%o", req.query);
-
 		const result = await ABI.GetMintReceipt(req.query.txHash, req[KEY]);
 
 		res.send(result);
@@ -236,8 +254,10 @@ export async function GetTokenIdByContentHash(req, res) {
 		!req.query.contractAddress ||
 		!req.query.contentHash
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.GetTokenIdByContentHash(req.query.contractAddress, req.query.contentHash);
@@ -261,8 +281,10 @@ export async function GetContractInfo(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.GetContractInfo(req.query.contractAddress);
@@ -287,8 +309,10 @@ export async function GetTokenInfo(req, res) {
 		!req.query.contractAddress ||
 		!req.query.tokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.GetTokenInfo(req.query.contractAddress, req.query.tokenId);
@@ -313,8 +337,10 @@ export async function GetTokenContentHash(req, res) {
 		!req.query.contractAddress ||
 		!req.query.tokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.GetTokenContentHash(req.query.contractAddress, req.query.tokenId);
@@ -339,8 +365,10 @@ export async function GetTokenURI(req, res) {
 		!req.query.contractAddress ||
 		!req.query.tokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.GetTokenURI(req.query.contractAddress, req.query.tokenId);
@@ -364,8 +392,10 @@ export async function GetSymbol(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.GetSymbol(req.query.contractAddress);
@@ -389,8 +419,10 @@ export async function GetContractOwner(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.GetContractOwner(req.query.contractAddress);
@@ -414,8 +446,10 @@ export async function GetMaxSupply(req, res) {
 	if (!req.query ||
 		!req.query.contractAddress
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.GetMaxSupply(req.query.contractAddress);
@@ -440,13 +474,23 @@ export async function OwnerOf(req, res) {
 		!req.query.contractAddress ||
 		!req.query.tokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
+		const key = Cache.CombinationKey([req.query.contractAddress, req.query.tokenId]);
+		if (Cache.CacheOwnerOfNFT.has(key)) {
+			res.send(Cache.CacheOwnerOfNFT.get(key));
+			return;
+		}
+
 		const result = await ABI.OwnerOf(req.query.contractAddress, req.query.tokenId);
 
 		res.send(result);
+
+		Cache.CacheOwnerOfNFT.set(key, result);
 
 		log.RequestId(req[KEY]).trace("Result=\n%o", result);
 	} catch (e) {
@@ -466,8 +510,10 @@ export async function BalanceOf(req, res) {
 		!req.query.contractAddress ||
 		!req.query.owner
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, query=%o", req.url, req.query);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, query=%o", req.url, req.query);
 
 	try {
 		const result = await ABI.BalanceOf(req.query.contractAddress, req.query.owner);
@@ -496,12 +542,12 @@ export async function BatchTransfer(req, res) {
 		!req.body.fromTokenId ||
 		!req.body.toTokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.BatchTransfer(
 			req.body.contractAddress,
 			req.body.fromAddress,
@@ -536,12 +582,12 @@ export async function BatchTransferToN(req, res) {
 		!req.body.toAddress ||
 		!req.body.tokenIds
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.BatchTransferToN(
 			req.body.contractAddress,
 			req.body.fromAddress,
@@ -575,12 +621,12 @@ export async function BatchBurn(req, res) {
 		!req.body.fromTokenId ||
 		!req.body.toTokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.BatchBurn(
 			req.body.contractAddress,
 			req.body.fromTokenId,
@@ -611,12 +657,12 @@ export async function Burn(req, res) {
 		!req.body.contractAddress ||
 		!req.body.tokenId
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.Burn(
 			req.body.contractAddress,   // Contract address
 			req.body.tokenId,           // TokenId
@@ -648,12 +694,12 @@ export async function Deploy(req, res) {
 		!req.body.baseTokenURI ||
 		!req.body.maxSupply
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await Deployer.Deploy(
 			req.body.name,
 			req.body.symbol,
@@ -689,12 +735,12 @@ export async function SetMaxSupply(req, res) {
 		!req.body.contractAddress ||
 		!req.body.maxSupply
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.SetMaxSupply(
 			req.body.contractAddress,
 			req.body.maxSupply,
@@ -723,12 +769,12 @@ export async function SetBaseTokenURI(req, res) {
 		!req.body.contractAddress ||
 		!req.body.baseTokenURI
 	) {
+		log.RequestId(req[KEY]).error("Bad request, url=%o, body=%o", req.url, req.body);
 		return MyResponse.BadRequest(res);
 	}
+	log.RequestId(req[KEY]).info("New request, url=%o, body=%o", req.url, req.body);
 
 	try {
-		log.RequestId(req[KEY]).info("Request=\n%o", req.body);
-
 		const result = await ABI.SetBaseTokenURI(
 			req.body.contractAddress,
 			req.body.baseTokenURI,

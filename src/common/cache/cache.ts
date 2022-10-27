@@ -4,21 +4,51 @@ import {cache} from '@jovijovi/pedrojs-common';
 export namespace Cache {
 	const cacheSet = cache.New();
 
-	// CacheBalanceObserver balance observer cache, ttl is 3 seconds
+	// CacheBalanceObserver
+	// Cache: balance observer cache
+	// ttl: 3 seconds
 	export const CacheBalanceObserver = cacheSet.New("balanceObserver", {
 		max: 1000,
 		ttl: 1000 * 3,
 	});
 
-	// CacheTotalSupplyOfNFT cache of NFT contract total supply, ttl is 3 seconds
+	// CacheTotalSupplyOfNFT
+	// Cache: NFT contract total supply
+	// ttl: 3 seconds
 	export const CacheTotalSupplyOfNFT = cacheSet.New("totalSupplyOfNFT", {
 		max: 1000,
 		ttl: 1000 * 3,
 	});
 
-	// CacheTotalSupply cache of NFT contract total supply, ttl is 3 seconds
+	// CacheEstimateGasOfTransferNFT
+	// Cache: estimate gas of transfer NFT
+	// ttl: 60 seconds
 	export const CacheEstimateGasOfTransferNFT = cacheSet.New("estimateGasOfTransferNFT", {
 		max: 1000,
+		ttl: 1000 * 60,
+	});
+
+	// CacheOwnerOfNFT
+	// Cache: owner of NFT
+	// ttl: 60 seconds
+	export const CacheOwnerOfNFT = cacheSet.New("OwnerOfNFT", {
+		max: 100000,
+		ttl: 1000 * 60,
+	});
+
+	// CacheTxResponse
+	// Cache: tx response
+	// ttl: 30 seconds
+	export const CacheTxResponse = cacheSet.New("TxResponse", {
+		max: 100000,
+		ttl: 1000 * 30,
+	});
+
+	// CacheTxReceipt
+	// Cache: tx receipt
+	// ttl: 60 seconds
+	export const CacheTxReceipt = cacheSet.New("TxReceipt", {
+		max: 100000,
 		ttl: 1000 * 60,
 	});
 

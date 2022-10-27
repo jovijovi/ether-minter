@@ -4,7 +4,7 @@ import {keystore} from '@jovijovi/ether-keystore';
 import {network} from '@jovijovi/ether-network';
 import {core} from '@jovijovi/ether-core';
 import {customConfig} from '../../../config';
-import {GetContract} from './common';
+import {GetContract, GetGasPrice} from './common';
 import {GetMinter} from './minter';
 import {
 	KeystoreTypeContractOwner,
@@ -38,27 +38,24 @@ export async function GetTotalSupply(address: string): Promise<any> {
 
 // EstimateGasOfTransferNFT returns estimate Gas of transfer NFT tx. (Uint: Wei)
 export async function EstimateGasOfTransferNFT(address: string, from: string, to: string, tokenId: number): Promise<string> {
-	const provider = network.MyProvider.Get();
 	const contract = GetContract(address);
-	const price = await provider.getGasPrice();
+	const price = await GetGasPrice();
 	const gas = await contract.estimateGas.transferFrom(from, to, tokenId);
 	return gas.mul(price).toString();
 }
 
 // EstimateGasOfBatchTransfer returns estimate Gas of BatchTransfer (1 to 1). (Uint: Wei)
 export async function EstimateGasOfBatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string): Promise<string> {
-	const provider = network.MyProvider.Get();
 	const contract = GetContract(address);
-	const price = await provider.getGasPrice();
+	const price = await GetGasPrice();
 	const gas = await contract.estimateGas.batchTransfer(from, to, fromTokenId, toTokenId);
 	return gas.mul(price).toString();
 }
 
 // EstimateGasOfBatchTransferN returns estimate gas of BatchTransferN (1 to N). (Uint: Wei)
 export async function EstimateGasOfBatchTransferN(address: string, from: string, to: string[], tokenIds: string[]): Promise<string> {
-	const provider = network.MyProvider.Get();
 	const contract = GetContract(address);
-	const price = await provider.getGasPrice();
+	const price = await GetGasPrice();
 	const gas = await contract.estimateGas.batchTransferToN(from, to, tokenIds);
 	return gas.mul(price).toString();
 }
@@ -66,14 +63,13 @@ export async function EstimateGasOfBatchTransferN(address: string, from: string,
 // Mint to
 export async function MintTo(address: string, to: string, quantity: number, reqId?: string): Promise<any> {
 	// Step 1. Get minter
-	const provider = network.MyProvider.Get();
 	const minter = GetMinter(customConfig.GetMint().randomMinter);
 	const pk = await keystore.InspectKeystorePK(minter.address.toLowerCase(), KeystoreTypeMinter, minter.keyStoreSK);
 	const contract = GetContract(address, pk);
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
-	const gasPrice = await provider.getGasPrice();
+	const gasPrice = await GetGasPrice();
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
@@ -128,7 +124,6 @@ export async function MintForCreator(address: string, to: string, contentHash: s
 // Mint to the specified address
 async function mintForCreator(address: string, to: string, contentHashList: string[], quantity: number, reqId?: string): Promise<any> {
 	// Step 1. Get minter
-	const provider = network.MyProvider.Get();
 	const minter = GetMinter(customConfig.GetMint().randomMinter);
 	const pk = await keystore.InspectKeystorePK(minter.address.toLowerCase(), KeystoreTypeMinter, minter.keyStoreSK);
 	const contract = GetContract(address, pk);
@@ -171,7 +166,7 @@ async function mintForCreator(address: string, to: string, contentHashList: stri
 
 	// Step 3. Check gas price
 	// Get gas price (Unit: Wei)
-	const gasPrice = await provider.getGasPrice();
+	const gasPrice = await GetGasPrice();
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
@@ -416,13 +411,12 @@ export async function BalanceOf(address: string, owner: string) {
 // Batch tokens transfer from 1 to 1
 export async function BatchTransfer(address: string, from: string, to: string, fromTokenId: string, toTokenId: string, pk?: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
-	const provider = network.MyProvider.Get();
 	// Get the pk from keystore if it's undefined
 	const contract = pk ? GetContract(address, pk) : GetContract(address, await keystore.InspectKeystorePK(from, KeystoreTypeVault, GetVaultKeyStoreSK(from)));
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
-	const gasPrice = await provider.getGasPrice();
+	const gasPrice = await GetGasPrice();
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
@@ -464,13 +458,12 @@ export async function BatchTransfer(address: string, from: string, to: string, f
 // Batch tokens transfer from 1 to N
 export async function BatchTransferToN(address: string, from: string, to: string[], tokenIds: string[], pk?: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
-	const provider = network.MyProvider.Get();
 	// Get the pk from keystore if it's undefined
 	const contract = pk ? GetContract(address, pk) : GetContract(address, await keystore.InspectKeystorePK(from, KeystoreTypeVault, GetVaultKeyStoreSK(from)));
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
-	const gasPrice = await provider.getGasPrice();
+	const gasPrice = await GetGasPrice();
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
@@ -512,13 +505,12 @@ export async function BatchTransferToN(address: string, from: string, to: string
 // Batch tokens burn
 export async function BatchBurn(address: string, fromTokenId: string, toTokenId: string, pk: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
-	const provider = network.MyProvider.Get();
 	const contract = GetContract(address, pk);
 	const owner = core.GetWallet(pk).address;
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
-	const gasPrice = await provider.getGasPrice();
+	const gasPrice = await GetGasPrice();
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
@@ -566,8 +558,7 @@ export async function SetMaxSupply(address: string, maxSupply: number, reqId?: s
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
-	const provider = network.MyProvider.Get();
-	const gasPrice = await provider.getGasPrice();
+	const gasPrice = await GetGasPrice();
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
@@ -615,7 +606,7 @@ export async function SetBaseTokenURI(address: string, baseTokenURI: string, req
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
-	const gasPrice = await network.MyProvider.Get().getGasPrice();
+	const gasPrice = await GetGasPrice();
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
@@ -657,8 +648,6 @@ export async function SetBaseTokenURI(address: string, baseTokenURI: string, req
 // Burn token
 export async function Burn(address: string, tokenId: string, pk?: string, reqId?: string): Promise<any> {
 	// Step 1. Get contract by PK
-	const provider = network.MyProvider.Get();
-
 	// Get token owner address
 	const rsp = await OwnerOf(address, tokenId);
 	if (rsp.code !== customConfig.GetMintRspCode().OK) {
@@ -679,7 +668,7 @@ export async function Burn(address: string, tokenId: string, pk?: string, reqId?
 
 	// Step 2. Check gas price
 	// Get gas price (Unit: Wei)
-	const gasPrice = await provider.getGasPrice();
+	const gasPrice = await GetGasPrice();
 
 	// Check gasPrice by circuit breaker
 	if (GasPriceCircuitBreaker(gasPrice, reqId)) {
